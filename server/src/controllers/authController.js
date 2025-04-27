@@ -1,25 +1,39 @@
 const User = require('../models/User');
 const { generateToken } = require('../utils/tokenUtils');
-const { awardDailyLoginBonus } = require('../utils/creditUtils');
+const { awardLoginCredits } = require('../services/creditService');
+const Credits = require('../models/Credits');
 
 // Register new user
 exports.register = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Check if the user already exists
+    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create a new user
-    const user = await User.create({ name, email, password, role });
+    // Create user
+    const user = await User.create({ 
+      name, 
+      email, 
+      password, 
+      role,
+      credits: 0
+    });
 
-    // Generate a token for the user
+    // Create initial credits document
+    await Credits.create({
+      userId: user._id,
+      totalCredits: 0,
+      loginPoints: 0,
+      interactionPoints: 0,
+      profileCompletionPoints: 0,
+      action: 'REGISTRATION'
+    });
+
     const token = generateToken(user);
-
-    // Send the response with user and token
     res.status(201).json({ user, token });
   } catch (err) {
     next(err);
@@ -31,24 +45,34 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
+    // Find user
     const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
+    if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Award daily login credits (once per day)
-    await awardDailyLoginBonus(user._id);
+    // Check password
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
-    // Update last login timestamp
-    user.lastLogin = new Date();
-    await user.save();
+    // Award login credits - handle this after sending response
+    const credits = await awardLoginCredits(user._id);
 
-    // Generate a token for the user
-    const token = generateToken(user);
+    // Get updated user data
+    const updatedUser = await User.findById(user._id).select('-password');
 
-    // Send the response with user and token
-    res.status(200).json({ user, token });
+    res.status(200).json({
+      user: updatedUser,
+      credits: {
+        totalCredits: credits.totalCredits,
+        loginPoints: credits.loginPoints,
+        interactionPoints: credits.interactionPoints,
+        profileCompletionPoints: credits.profileCompletionPoints
+      },
+      token: generateToken(user)
+    });
   } catch (err) {
     next(err);
   }

@@ -23,16 +23,16 @@ const creditSchema = new mongoose.Schema(
       type: Number, 
       default: 0 
     },
-    creditsSpent: { 
-      type: Number, 
-      default: 0 
+    lastLoginDate: {
+      type: Date
     },
-    action: { 
-      type: String, 
-      required: true 
-    },
+    action: {
+      type: String,
+      required: true,
+      enum: ['REGISTRATION', 'LOGIN', 'PROFILE_COMPLETION', 'POST_SAVE', 'POST_REPORT']
+    }
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Credit', creditSchema);
+module.exports = mongoose.model('Credits', creditSchema);
