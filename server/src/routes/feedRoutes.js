@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const {
   fetchRedditPosts,
-  fetchTwitterPosts, // updated to Twitter
+  fetchTwitterPosts,
   savePost,
   reportPost,
   getSavedPosts,
@@ -13,7 +13,7 @@ const { sharePost } = require('../controllers/feedController');
 
 // Public routes
 router.get('/reddit', fetchRedditPosts);
-router.get('/twitter', fetchTwitterPosts); // updated to Twitter
+router.get('/twitter', fetchTwitterPosts); 
 
 // Protected routes (user must be logged in)
 router.post('/save', protect, savePost);

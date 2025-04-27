@@ -10,9 +10,9 @@ const awardLoginCredits = async (userId) => {
   const lastLoginDate = credits.lastLoginDate ? credits.lastLoginDate.toISOString().split('T')[0] : null;
 
   if (today !== lastLoginDate) {
-    credits.loginPoints += 10; // Example: +10 credits for daily login
-    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
+    credits.loginPoints += 10; // +10 credits for daily login
     credits.lastLoginDate = new Date();
+    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
     await credits.save();
   }
 };
@@ -23,10 +23,9 @@ const awardProfileCompletionCredits = async (userId) => {
   const user = await User.findById(userId);
   if (!credits || !user) return;
 
-  // Example check (you can adjust this): profile is complete if name and email exist
   if (user.name && user.email && !credits.profileCompleted) {
-    credits.profileCompletionPoints += 50; // Example: +50 credits for profile completion
-    credits.profileCompleted = true; // Mark profile as completed
+    credits.profileCompletionPoints += 50; // +50 credits
+    credits.profileCompleted = true;
     credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
     await credits.save();
   }
@@ -37,7 +36,7 @@ const awardSavePostCredits = async (userId) => {
   const credits = await Credits.findOne({ user: userId });
   if (!credits) return;
 
-  credits.interactionPoints += 5; // Example: +5 credits per saved post
+  credits.interactionPoints += 5; // +5 credits
   credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
   await credits.save();
 };
@@ -47,7 +46,7 @@ const awardSharePostCredits = async (userId) => {
   const credits = await Credits.findOne({ user: userId });
   if (!credits) return;
 
-  credits.interactionPoints += 10; // Example: +10 credits per shared post
+  credits.interactionPoints += 10; // +10 credits
   credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
   await credits.save();
 };
@@ -57,7 +56,7 @@ const awardReportPostCredits = async (userId) => {
   const credits = await Credits.findOne({ user: userId });
   if (!credits) return;
 
-  credits.interactionPoints += 2; // Example: +2 credits for reporting
+  credits.interactionPoints += 2; // +2 credits
   credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
   await credits.save();
 };

@@ -7,8 +7,9 @@ const {
   awardReportPostCredits
 } = require('../services/creditService');
 const SavedPost = require('../models/SavedPost');
-const Credits = require('../models/Credits');
+// const Credits = require('../models/Credits');
 const ActivityLog = require('../models/ActivityLog');
+
 
 // @desc    Get current user's profile
 // @route   GET /api/users/profile
@@ -168,38 +169,67 @@ exports.reportPost = async (req, res, next) => {
 // @desc    Get user's dashboard (overview)
 // @route   GET /api/users/dashboard
 // @access  Private (User)
+// exports.getUserDashboard = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.user._id).select('name email role createdAt');
+
+//     // Fetch user's credit details
+   
+//     // const creditDetails = await User.findById(req.user._id).
+//     // Get saved posts
+//     const savedPosts = await SavedPost.find({ user: req.user._id })
+//       .sort('-createdAt')
+//       .limit(5)
+//       .select('title link source createdAt');
+
+//     // Get recent activity logs
+//     const activityLogs = await ActivityLog.find({ user: req.user._id })
+//       .sort('-createdAt')
+//       .limit(5)
+//       .select('action details createdAt');
+
+//     res.status(200).json({
+//       profile: {
+//         name: user.name,
+//         email: user.email,
+//         role: user.role,
+//         createdAt: user.createdAt,
+//       },
+//       credits: user.credits,  
+//       savedPosts,
+//       activityLogs,
+
+//     });
+//   } catch (error) {
+//     console.error('Error fetching user dashboard', error.message);
+//     res.status(500).json({ message: 'Something went wrong' });
+//   }
+// };
+
+
 exports.getUserDashboard = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('name email role createdAt');
+    const user = await User.findById(req.user._id)
+      .select('name email role createdAt credits');   
 
-    // Fetch user's credit details
-    const credits = await Credits.findOne({ user: req.user._id }) || {
-      total: 0,
-      loginPoints: 0,
-      interactionPoints: 0,
-      profileCompletionPoints: 0,
-    };
-
-    // Get saved posts
     const savedPosts = await SavedPost.find({ user: req.user._id })
       .sort('-createdAt')
       .limit(5)
       .select('title link source createdAt');
 
-    // Get recent activity logs
     const activityLogs = await ActivityLog.find({ user: req.user._id })
       .sort('-createdAt')
       .limit(5)
       .select('action details createdAt');
 
     res.status(200).json({
-      profile: user,
-      credits: {
-        totalCredits: credits.total,
-        loginPoints: credits.loginPoints,
-        interactionPoints: credits.interactionPoints,
-        profileCompletionPoints: credits.profileCompletionPoints,
+      profile: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
       },
+      credits: user.credits,   // Now this will show properly
       savedPosts,
       activityLogs,
     });
