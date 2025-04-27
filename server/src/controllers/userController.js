@@ -52,34 +52,33 @@ exports.updateProfile = async (req, res, next) => {
     if (bio) user.bio = bio;
     if (email) user.email = email;
 
-    // Check for first-time profile completion
-    const isNowComplete = name && bio && email;
-    if (isNowComplete && !user.profileCompleted) {
-      user.profileCompleted = true;
-      user.credits += 5; // Award credits for completing the profile
-    }
-
+    // Save the basic profile changes first
+    await user.save();
+    
     // Award profile completion credits if applicable
-    await awardProfileCompletionCredits(user._id);
+    // The credit service will handle updating both the Credits and User schemas
+    const credits = await awardProfileCompletionCredits(user._id);
 
     // Award daily login credits (if not already awarded today)
+    // The credit service will handle updating both the Credits and User schemas
     await awardLoginCredits(user._id);
 
-    await user.save();
+    // Get the updated user with the latest credit information
+    const updatedUser = await User.findById(user._id);
 
     res.status(200).json({
       message: 'Profile updated successfully',
       user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        bio: user.bio,
-        role: user.role,
-        credits: user.credits,
-        profileCompleted: user.profileCompleted,
-        lastLogin: user.lastLogin,
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        bio: updatedUser.bio,
+        role: updatedUser.role,
+        credits: updatedUser.credits,
+        profileCompleted: updatedUser.profileCompleted,
+        lastLogin: updatedUser.lastLogin,
       },
-      token: generateToken(user), // Optional: regenerate token after update
+      token: generateToken(updatedUser), // Optional: regenerate token after update
     });
   } catch (err) {
     next(err);
@@ -114,11 +113,16 @@ exports.savePost = async (req, res, next) => {
     await user.save();
 
     // Award credits for saving a post
-    await awardSavePostCredits(user._id);
+    // The credit service will handle updating both the Credits and User schemas
+    const credits = await awardSavePostCredits(user._id);
+    
+    // Get the updated user with the latest credit information
+    const updatedUser = await User.findById(user._id);
 
     res.status(200).json({
       message: 'Post saved successfully',
       savedPost,
+      credits: updatedUser.credits
     });
   } catch (err) {
     next(err);
@@ -158,9 +162,16 @@ exports.reportPost = async (req, res, next) => {
     await savedPost.save();
 
     // Award credits for reporting the post
-    await awardReportPostCredits(user._id);
+    // The credit service will handle updating both the Credits and User schemas
+    const credits = await awardReportPostCredits(user._id);
+    
+    // Get the updated user with the latest credit information
+    const updatedUser = await User.findById(user._id);
 
-    res.status(200).json({ message: 'Post has been reported' });
+    res.status(200).json({ 
+      message: 'Post has been reported',
+      credits: updatedUser.credits
+    });
   } catch (err) {
     next(err);
   }

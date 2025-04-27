@@ -12,7 +12,7 @@ const savedPostSchema = new mongoose.Schema({
   }, // The ID from Reddit or LinkedIn post
   source: { 
     type: String, 
-    enum: ['reddit', 'twitter'], 
+    enum: ['reddit', 'twitter', 'Reddit', 'Twitter', 'linkedin', 'LinkedIn'], 
     required: true 
   },
   title: { 

@@ -76,46 +76,103 @@ const awardLoginCredits = async (userId) => {
 
 // Award credits for completing profile
 const awardProfileCompletionCredits = async (userId) => {
-  const credits = await Credits.findOne({ user: userId });
-  const user = await User.findById(userId);
-  if (!credits || !user) return;
+  try {
+    const credits = await Credits.findOne({ userId });
+    const user = await User.findById(userId);
+    if (!credits || !user) return;
 
-  if (user.name && user.email && !credits.profileCompleted) {
-    credits.profileCompletionPoints += 50; // +50 credits
-    credits.profileCompleted = true;
-    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-    await credits.save();
+    if (user.name && user.email && !user.profileCompleted) {
+      // Update credits schema
+      credits.profileCompletionPoints += 50; // +50 credits
+      credits.profileCompleted = true;
+      credits.action = 'PROFILE_COMPLETION';
+      credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
+      await credits.save();
+      
+      // Update user schema with total credits
+      user.profileCompleted = true;
+      user.credits = credits.totalCredits;
+      await user.save();
+      
+      return credits;
+    }
+    return credits;
+  } catch (error) {
+    console.error('Error in awardProfileCompletionCredits:', error);
+    throw error;
   }
 };
 
 // Award credits for saving a post
 const awardSavePostCredits = async (userId) => {
-  const credits = await Credits.findOne({ user: userId });
-  if (!credits) return;
+  try {
+    const credits = await Credits.findOne({ userId });
+    if (!credits) return;
 
-  credits.interactionPoints += 5; // +5 credits
-  credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-  await credits.save();
+    // Update credits schema
+    credits.interactionPoints += 5; // +5 credits
+    credits.action = 'POST_SAVE';
+    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
+    await credits.save();
+    
+    // Update user schema with total credits
+    await User.findByIdAndUpdate(userId, { 
+      credits: credits.totalCredits
+    });
+    
+    return credits;
+  } catch (error) {
+    console.error('Error in awardSavePostCredits:', error);
+    throw error;
+  }
 };
 
 // Award credits for sharing a post
 const awardSharePostCredits = async (userId) => {
-  const credits = await Credits.findOne({ user: userId });
-  if (!credits) return;
+  try {
+    const credits = await Credits.findOne({ userId });
+    if (!credits) return;
 
-  credits.interactionPoints += 10; // +10 credits
-  credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-  await credits.save();
+    // Update credits schema
+    credits.interactionPoints += 10; // +10 credits
+    credits.action = 'POST_SHARE';
+    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
+    await credits.save();
+    
+    // Update user schema with total credits
+    await User.findByIdAndUpdate(userId, { 
+      credits: credits.totalCredits
+    });
+    
+    return credits;
+  } catch (error) {
+    console.error('Error in awardSharePostCredits:', error);
+    throw error;
+  }
 };
 
 // Award credits for reporting a post
 const awardReportPostCredits = async (userId) => {
-  const credits = await Credits.findOne({ user: userId });
-  if (!credits) return;
+  try {
+    const credits = await Credits.findOne({ userId });
+    if (!credits) return;
 
-  credits.interactionPoints += 2; // +2 credits
-  credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-  await credits.save();
+    // Update credits schema
+    credits.interactionPoints += 2; // +2 credits
+    credits.action = 'POST_REPORT';
+    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
+    await credits.save();
+    
+    // Update user schema with total credits
+    await User.findByIdAndUpdate(userId, { 
+      credits: credits.totalCredits
+    });
+    
+    return credits;
+  } catch (error) {
+    console.error('Error in awardReportPostCredits:', error);
+    throw error;
+  }
 };
 
 module.exports = {
