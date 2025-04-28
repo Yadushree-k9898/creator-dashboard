@@ -106,45 +106,98 @@ const awardProfileCompletionCredits = async (userId) => {
 // Award credits for saving a post
 const awardSavePostCredits = async (userId) => {
   try {
-    const credits = await Credits.findOne({ userId });
-    if (!credits) return;
-
-    // Update credits schema
-    credits.interactionPoints += 5; // +5 credits
-    credits.action = 'POST_SAVE';
-    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-    await credits.save();
+    // Get existing credits to calculate totals
+    const existingCredits = await Credits.find({ userId });
     
-    // Update user schema with total credits
-    await User.findByIdAndUpdate(userId, { 
-      credits: credits.totalCredits
+    // Calculate current totals
+    let currentLoginPoints = 0;
+    let currentProfilePoints = 0;
+    let currentInteractionPoints = 0;
+    let currentSavedPostsCount = 0;
+    
+    existingCredits.forEach(credit => {
+      currentLoginPoints += credit.loginPoints || 0;
+      currentProfilePoints += credit.profileCompletionPoints || 0;
+      currentInteractionPoints += credit.interactionPoints || 0;
+      currentSavedPostsCount += credit.savedPostsCount || 0;
     });
     
-    return credits;
+    // Create a new credit record for this transaction
+    const newCredit = new Credits({
+      userId,
+      totalCredits: 5, // Points for this transaction
+      loginPoints: 0,
+      profileCompletionPoints: 0,
+      interactionPoints: 5, // +5 credits for saving a post
+      sharedPostsCount: 0,
+      savedPostsCount: 1, // This transaction is for 1 saved post
+      reportedPostsCount: 0,
+      action: 'POST_SAVE',
+      lastLoginDate: new Date()
+    });
+    
+    await newCredit.save();
+    
+    // Update user's total credits
+    const totalCredits = currentLoginPoints + currentProfilePoints + currentInteractionPoints + 5;
+    await User.findByIdAndUpdate(userId, { credits: totalCredits });
+    
+    // Return the new credit record along with updated counts
+    return {
+      ...newCredit.toObject(),
+      totalCredits,
+      savedPostsCount: currentSavedPostsCount + 1
+    };
   } catch (error) {
     console.error('Error in awardSavePostCredits:', error);
     throw error;
   }
 };
 
-// Award credits for sharing a post
 const awardSharePostCredits = async (userId) => {
   try {
-    const credits = await Credits.findOne({ userId });
-    if (!credits) return;
-
-    // Update credits schema
-    credits.interactionPoints += 10; // +10 credits
-    credits.action = 'POST_SHARE';
-    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-    await credits.save();
+    // Get existing credits to calculate totals
+    const existingCredits = await Credits.find({ userId });
     
-    // Update user schema with total credits
-    await User.findByIdAndUpdate(userId, { 
-      credits: credits.totalCredits
+    // Calculate current totals
+    let currentLoginPoints = 0;
+    let currentProfilePoints = 0;
+    let currentInteractionPoints = 0;
+    let currentSharedPostsCount = 0;
+    
+    existingCredits.forEach(credit => {
+      currentLoginPoints += credit.loginPoints || 0;
+      currentProfilePoints += credit.profileCompletionPoints || 0;
+      currentInteractionPoints += credit.interactionPoints || 0;
+      currentSharedPostsCount += credit.sharedPostsCount || 0;
     });
     
-    return credits;
+    // Create a new credit record for this transaction
+    const newCredit = new Credits({
+      userId,
+      totalCredits: 5, // Points for this transaction
+      loginPoints: 0,
+      profileCompletionPoints: 0,
+      interactionPoints: 5, // +5 credits for sharing a post
+      sharedPostsCount: 1, // This transaction is for 1 shared post
+      savedPostsCount: 0,
+      reportedPostsCount: 0,
+      action: 'POST_SHARE',
+      lastLoginDate: new Date()
+    });
+    
+    await newCredit.save();
+    
+    // Update user's total credits
+    const totalCredits = currentLoginPoints + currentProfilePoints + currentInteractionPoints + 5;
+    await User.findByIdAndUpdate(userId, { credits: totalCredits });
+    
+    // Return the new credit record along with updated counts
+    return {
+      ...newCredit.toObject(),
+      totalCredits,
+      sharedPostsCount: currentSharedPostsCount + 1
+    };
   } catch (error) {
     console.error('Error in awardSharePostCredits:', error);
     throw error;
@@ -154,21 +207,48 @@ const awardSharePostCredits = async (userId) => {
 // Award credits for reporting a post
 const awardReportPostCredits = async (userId) => {
   try {
-    const credits = await Credits.findOne({ userId });
-    if (!credits) return;
-
-    // Update credits schema
-    credits.interactionPoints += 2; // +2 credits
-    credits.action = 'POST_REPORT';
-    credits.totalCredits = credits.loginPoints + credits.profileCompletionPoints + credits.interactionPoints;
-    await credits.save();
+    // Get existing credits to calculate totals
+    const existingCredits = await Credits.find({ userId });
     
-    // Update user schema with total credits
-    await User.findByIdAndUpdate(userId, { 
-      credits: credits.totalCredits
+    // Calculate current totals
+    let currentLoginPoints = 0;
+    let currentProfilePoints = 0;
+    let currentInteractionPoints = 0;
+    let currentReportedPostsCount = 0;
+    
+    existingCredits.forEach(credit => {
+      currentLoginPoints += credit.loginPoints || 0;
+      currentProfilePoints += credit.profileCompletionPoints || 0;
+      currentInteractionPoints += credit.interactionPoints || 0;
+      currentReportedPostsCount += credit.reportedPostsCount || 0;
     });
     
-    return credits;
+    // Create a new credit record for this transaction
+    const newCredit = new Credits({
+      userId,
+      totalCredits: 10, // Points for this transaction
+      loginPoints: 0,
+      profileCompletionPoints: 0,
+      interactionPoints: 10, // +10 credits for reporting a post
+      sharedPostsCount: 0,
+      savedPostsCount: 0,
+      reportedPostsCount: 1, // This transaction is for 1 reported post
+      action: 'POST_REPORT',
+      lastLoginDate: new Date()
+    });
+    
+    await newCredit.save();
+    
+    // Update user's total credits
+    const totalCredits = currentLoginPoints + currentProfilePoints + currentInteractionPoints + 10;
+    await User.findByIdAndUpdate(userId, { credits: totalCredits });
+    
+    // Return the new credit record along with updated counts
+    return {
+      ...newCredit.toObject(),
+      totalCredits,
+      reportedPostsCount: currentReportedPostsCount + 1
+    };
   } catch (error) {
     console.error('Error in awardReportPostCredits:', error);
     throw error;

@@ -23,13 +23,25 @@ const creditSchema = new mongoose.Schema(
       type: Number, 
       default: 0 
     },
+    savedPostsCount: {
+      type: Number,
+      default: 0
+    },
+    sharedPostsCount: {
+      type: Number,
+      default: 0
+    },
+    reportedPostsCount: {
+      type: Number,
+      default: 0
+    },
     lastLoginDate: {
       type: Date
     },
     action: {
       type: String,
       required: true,
-      enum: ['REGISTRATION', 'LOGIN', 'PROFILE_COMPLETION', 'POST_SAVE', 'POST_REPORT']
+      enum: ['REGISTRATION', 'LOGIN', 'PROFILE_COMPLETION', 'POST_SAVE', 'POST_SHARE', 'POST_REPORT']
     }
   },
   { timestamps: true }

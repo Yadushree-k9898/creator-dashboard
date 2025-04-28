@@ -15,6 +15,6 @@ router.get('/users', protect, allowRoles('Admin'), getAllUsers);
 router.get('/users/:userId', protect, allowRoles('Admin'), getUserById);
 router.put('/users/role', protect, allowRoles('Admin'), updateUserRole); 
 router.put('/users/credits', protect, allowRoles('Admin'), updateUserCredits);  
-router.get('/users/dashboard', protect, allowRoles('Admin'), getAdminDashboard);
+router.get('/dashboard', protect, allowRoles('Admin'), getAdminDashboard);
 
 module.exports = router;

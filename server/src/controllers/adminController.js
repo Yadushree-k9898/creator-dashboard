@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Credits = require('../models/Credits');
 const ActivityLog = require('../models/ActivityLog');
+const SavedPost = require('../models/SavedPost');
 
 
 // Get all users for admin to view (with pagination)
@@ -97,42 +98,246 @@ exports.updateUserCredits = async (req, res) => {
 
 exports.getAdminDashboard = async (req, res) => {
   try {
+    console.log('Fetching admin dashboard data');
+    
+    // User statistics
     const totalUsers = await User.countDocuments();
-    const totalAdmins = await User.countDocuments({ role: 'admin' });
-    const totalCreators = await User.countDocuments({ role: 'user' });
+    const totalAdmins = await User.countDocuments({ role: 'Admin' });
+    const totalCreators = await User.countDocuments({ role: 'User' });
+    
+    // Get users registered in the last 7 days
+    const lastWeekDate = new Date();
+    lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+    const newUsersLastWeek = await User.countDocuments({
+      createdAt: { $gte: lastWeekDate }
+    });
 
+    // Get users registered in the last 30 days (monthly growth)
+    const lastMonthDate = new Date();
+    lastMonthDate.setDate(lastMonthDate.getDate() - 30);
+    const newUsersLastMonth = await User.countDocuments({
+      createdAt: { $gte: lastMonthDate }
+    });
+    
+    // Monthly growth rate
+    const monthlyGrowthRate = totalUsers > 0 ? (newUsersLastMonth / totalUsers) * 100 : 0;
+
+    // Credit statistics - using aggregation to handle multiple credit records per user
     const platformCredits = await Credits.aggregate([
       {
         $group: {
           _id: null,
-          totalCredits: { $sum: "$total" }
+          totalCredits: { $sum: "$totalCredits" },
+          totalLoginPoints: { $sum: "$loginPoints" },
+          totalProfilePoints: { $sum: "$profileCompletionPoints" },
+          totalInteractionPoints: { $sum: "$interactionPoints" }
         }
       }
     ]);
 
-    const topUsers = await User.find({ role: 'user' })
+    // User engagement metrics
+    const usersWithCompletedProfiles = await User.countDocuments({ profileCompleted: true });
+    const profileCompletionRate = totalUsers > 0 ? (usersWithCompletedProfiles / totalUsers) * 100 : 0;
+    
+    // Get users who logged in in the last 7 days
+    const activeUsersLastWeek = await User.countDocuments({
+      lastLogin: { $gte: lastWeekDate }
+    });
+    const activeUserRate = totalUsers > 0 ? (activeUsersLastWeek / totalUsers) * 100 : 0;
+
+    // Top users by credits
+    const topUsersByCredits = await User.find()
       .sort({ credits: -1 })
-      .limit(5)
-      .select('name email credits');
-
-    const recentActivities = await ActivityLog.find()
-      .sort('-createdAt')
       .limit(10)
-      .select('user action details createdAt')
-      .populate('user', 'name email');
+      .select('name email role credits lastLogin profileCompleted');
 
+    // Feed interaction statistics
+    const totalSavedPosts = await SavedPost.countDocuments();
+    const totalReportedPosts = await SavedPost.countDocuments({ reported: true });
+    const totalSharedPosts = await SavedPost.countDocuments({ shared: true });
+    
+    // Calculate engagement rates
+    const reportRate = totalSavedPosts > 0 ? ((totalReportedPosts / totalSavedPosts) * 100).toFixed(2) + '%' : '0%';
+    const shareRate = totalSavedPosts > 0 ? ((totalSharedPosts / totalSavedPosts) * 100).toFixed(2) + '%' : '0%';
+    
+    // Get post sources distribution
+    const postSourceDistribution = await SavedPost.aggregate([
+      {
+        $group: {
+          _id: "$source",
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Get post interaction trends by day (last 7 days)
+    const last7Days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      last7Days.push(date);
+    }
+    
+    // Get daily post interactions
+    const dailyInteractions = [];
+    for (let i = 0; i < 6; i++) {
+      const startDate = last7Days[i+1];
+      const endDate = last7Days[i];
+      
+      const savedCount = await SavedPost.countDocuments({
+        createdAt: { $gte: startDate, $lt: endDate }
+      });
+      
+      const reportedCount = await SavedPost.countDocuments({
+        reported: true,
+        createdAt: { $gte: startDate, $lt: endDate }
+      });
+      
+      const sharedCount = await SavedPost.countDocuments({
+        shared: true,
+        createdAt: { $gte: startDate, $lt: endDate }
+      });
+      
+      dailyInteractions.push({
+        date: startDate.toISOString().split('T')[0],
+        saved: savedCount,
+        reported: reportedCount,
+        shared: sharedCount,
+        total: savedCount + reportedCount + sharedCount
+      });
+    }
+
+    // Recent user activities with better formatting
+    const recentActivities = await ActivityLog.find()
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate('user', 'name email role');
+    
+    // Format activities for better display
+    const formattedActivities = recentActivities.map(activity => {
+      let actionDisplay = '';
+      switch(activity.action) {
+        case 'LOGIN':
+          actionDisplay = 'Logged in';
+          break;
+        case 'PROFILE_COMPLETION':
+          actionDisplay = 'Completed profile';
+          break;
+        case 'SAVED_POST':
+          actionDisplay = 'Saved a post';
+          break;
+        case 'SHARED_POST':
+          actionDisplay = 'Shared a post';
+          break;
+        case 'REPORTED_POST':
+          actionDisplay = 'Reported a post';
+          break;
+        default:
+          actionDisplay = activity.action;
+      }
+      
+      return {
+        id: activity._id,
+        user: activity.user ? {
+          id: activity.user._id,
+          name: activity.user.name,
+          email: activity.user.email,
+          role: activity.user.role
+        } : { name: 'Unknown User' },
+        action: actionDisplay,
+        details: activity.details || 'No details available',
+        createdAt: activity.createdAt
+      };
+    });
+
+    // Credit distribution by action type
+    const creditsByActionType = await Credits.aggregate([
+      {
+        $group: {
+          _id: "$action",
+          totalPoints: { $sum: "$totalCredits" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { totalPoints: -1 } }
+    ]);
+    
+    // Format credit distribution for better display
+    const formattedCreditsByAction = creditsByActionType.map(item => {
+      let actionDisplay = '';
+      switch(item._id) {
+        case 'LOGIN':
+          actionDisplay = 'Daily Login';
+          break;
+        case 'PROFILE_COMPLETION':
+          actionDisplay = 'Profile Completion';
+          break;
+        case 'POST_SAVE':
+          actionDisplay = 'Saving Posts';
+          break;
+        case 'POST_SHARE':
+          actionDisplay = 'Sharing Posts';
+          break;
+        case 'POST_REPORT':
+          actionDisplay = 'Reporting Posts';
+          break;
+        default:
+          actionDisplay = item._id;
+      }
+      
+      return {
+        action: actionDisplay,
+        totalPoints: item.totalPoints,
+        count: item.count,
+        averagePoints: (item.totalPoints / item.count).toFixed(1)
+      };
+    });
+
+    // Return the enhanced dashboard data
     res.status(200).json({
-      stats: {
+      userStats: {
         totalUsers,
         totalAdmins,
         totalCreators,
-        totalPlatformCredits: platformCredits[0]?.totalCredits || 0,
+        newUsersLastWeek,
+        newUsersLastMonth,
+        monthlyGrowthRate: monthlyGrowthRate.toFixed(2) + '%',
+        usersWithCompletedProfiles,
+        profileCompletionRate: profileCompletionRate.toFixed(2) + '%',
+        activeUsersLastWeek,
+        activeUserRate: activeUserRate.toFixed(2) + '%'
       },
-      topUsers,
-      recentActivities,
+      creditStats: {
+        totalPlatformCredits: platformCredits[0]?.totalCredits || 0,
+        totalLoginPoints: platformCredits[0]?.totalLoginPoints || 0,
+        totalProfilePoints: platformCredits[0]?.totalProfilePoints || 0,
+        totalInteractionPoints: platformCredits[0]?.totalInteractionPoints || 0,
+        creditsByActionType: formattedCreditsByAction
+      },
+      feedStats: {
+        totalSavedPosts,
+        totalReportedPosts,
+        totalSharedPosts,
+        reportRate,
+        shareRate,
+        postSourceDistribution,
+        dailyInteractions
+      },
+      topUsers: topUsersByCredits.map(user => ({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        credits: user.credits,
+        lastLogin: user.lastLogin,
+        profileCompleted: user.profileCompleted ? 'Complete' : 'Incomplete'
+      })),
+      recentActivities: formattedActivities,
     });
   } catch (error) {
-    console.error('Error fetching admin dashboard', error.message);
-    res.status(500).json({ message: 'Failed to fetch dashboard data' });
+    console.error('Error fetching admin dashboard:', error);
+    res.status(500).json({ message: 'Error fetching admin dashboard data' });
   }
 };
