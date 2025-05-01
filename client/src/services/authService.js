@@ -1,21 +1,24 @@
-// src/services/authService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth'; // Replace with your API URL
+const API_URL = 'http://localhost:5000/api/auth'; // Change to match your backend
 
-// Register User
-export const registerUserService = async (userData) => {
-  try {
-    const response = await axios.post(`${API_URL}/register`, userData);
-    return response; // Return the response containing user data and token
-  } catch (error) {
-    console.error('Error during registration:', error.response ? error.response.data : error.message);
-    throw error; // Re-throw to propagate the error to the UI
-  }
+
+// Register a new user
+export const register = async (userData) => {
+  const response = await axios.post(`${API_URL}/register`, userData);
+  return response.data;  // returns user and token
 };
 
-// Login User
-export const loginUserService = async (userData) => {
+// Log in an existing user
+export const login = async (userData) => {
   const response = await axios.post(`${API_URL}/login`, userData);
-  return response; // Return the response containing user data and token
+  return response.data;  // returns user, credits, and token
+};
+
+// Fetch current user details (optional for authenticated routes)
+export const getMe = async (token) => {
+  const response = await axios.get(`${API_URL}/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
 };

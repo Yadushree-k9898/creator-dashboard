@@ -1,15 +1,15 @@
-// src/index.js
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux'; // Import the Provider
+import store from './redux/store'; // Import your Redux store
 import './index.css';
-import { Provider } from 'react-redux';
-import { store } from './redux/store';  // Import the store
+import App from './App.jsx';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <Provider store={store}> {/* Wrap the app in Redux provider */}
+// Use StrictMode for development environment
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <Provider store={store}> {/* Wrap App in the Provider */}
       <App />
     </Provider>
-  </React.StrictMode>
+  </StrictMode>
 );

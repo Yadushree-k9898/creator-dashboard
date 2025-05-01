@@ -1,16 +1,13 @@
+// src/App.jsx
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import AppRoutes from './routes/AppRoutes';
-import ErrorBoundary from './components/ErrorBoundary';
-import './App.css'; // Optional: your global styles
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRoutes from './routes/AppRouter';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <AppRoutes />
-      </ErrorBoundary>
-    </BrowserRouter>
+    <Router>
+      <AppRoutes /> {/* Use AppRoutes to handle all the routing */}
+    </Router>
   );
 };
 

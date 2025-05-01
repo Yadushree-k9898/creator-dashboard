@@ -1,88 +1,84 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux'; 
+import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../redux/slices/authSlice';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Initialize the useNavigate hook
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const { loading, error: authError, user } = useSelector((state) => state.auth);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
+    const loginData = {
+      email,
+      password
+    };
 
-    setError(null); // Reset previous error
-    setLoading(true); // Set loading state
-
-    const userData = { email, password };
-
-    try {
-      // Dispatch login action
-      await dispatch(loginUser(userData));
-
-      // Redirect based on user role after successful login
-      const { role } = userData;  // Assuming the role is available in userData
-      if (role === 'admin') {
-        navigate('/admin/dashboard'); // Redirect to admin dashboard
-      } else if (role === 'user') {
-        navigate('/user/dashboard'); // Redirect to user dashboard
-      } else {
-        navigate('/dashboard');  // Default redirect (could be modified as needed)
-      }
-
-    } catch (err) {
-      console.error("Login error:", err); 
-      setError("Login failed. Please check your credentials.");
-    } finally {
-      setLoading(false); // Reset loading state
-    }
+    dispatch(loginUser(loginData))
+      .unwrap()
+      .then(() => {
+        if (user?.role === 'Admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/user/dashboard');
+        }
+      })
+      .catch((err) => {
+        setError(err?.message || 'Login failed');
+      });
   };
 
   return (
-    <form onSubmit={handleLogin} className="max-w-lg mx-auto p-8 bg-gradient-to-br from-green-100 to-yellow-100 rounded-xl shadow-lg space-y-6">
-      <h2 className="text-3xl font-extrabold text-center text-green-600">Welcome Back</h2>
-      <div>
-        <Label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          className="mt-2 w-full p-4 rounded-xl border-gray-300 shadow-md focus:ring-2 focus:ring-green-500"
-        />
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 via-yellow-50 to-slate-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="w-full max-w-md p-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg">
+        <h2 className="text-2xl font-bold mb-6 text-center text-emerald-600">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-200">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="username"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-200">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow transition disabled:opacity-50"
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+
+          {(error || authError) && (
+            <div className="text-red-600 text-sm mt-2 text-center">
+              {error || authError}
+            </div>
+          )}
+        </form>
       </div>
-      <div>
-        <Label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className="mt-2 w-full p-4 rounded-xl border-gray-300 shadow-md focus:ring-2 focus:ring-green-500"
-        />
-      </div>
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      <Button
-        type="submit"
-        className="w-full py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200"
-        disabled={loading}
-      >
-        {loading ? 'Logging in...' : 'Login'}
-      </Button>
-    </form>
+    </div>
   );
 };
 

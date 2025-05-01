@@ -1,12 +1,13 @@
-import React from 'react'
-import UserDashboard from '../../components/dashboard/UserDashboard'
+// src/pages/Dashboard/UserDashboard.jsx
+import React from 'react';
 
-const Dashboard = () => {
+const UserDashboard = () => {
   return (
     <div>
-      <UserDashboard />
+      <h1>User Dashboard</h1>
+      <p>Welcome to your dashboard, creator!</p>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default UserDashboard;
