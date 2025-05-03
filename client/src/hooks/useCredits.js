@@ -1,26 +1,31 @@
-"use client"
-
-import { useEffect } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { fetchUserDashboard } from "../redux/slices/creditSlice"
+// hooks/useCredits.js
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserDashboard } from "@/redux/slices/creditSlice";
 
 export const useCredits = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-  const dashboard = useSelector((state) => state.credits.dashboard)
-  const loading = useSelector((state) => state.credits.loading)
-  const error = useSelector((state) => state.credits.error)
+  const dashboard = useSelector((state) => state.credits.dashboard);
+  const loading = useSelector((state) => state.credits.loading);
+  const error = useSelector((state) => state.credits.error);
 
   useEffect(() => {
-    dispatch(fetchUserDashboard())
-  }, [dispatch])
+    dispatch(fetchUserDashboard());
+  }, [dispatch]);
+
+  const creditStats = dashboard?.creditStats
+    ? {
+        totalCredits: Number(dashboard.creditStats.totalCredits || 0),
+        // loginCredits: Number(dashboard.creditStats.loginPoints || 0),
+        // profileCredits: Number(dashboard.creditStats.profileCompletionPoints || 0),
+        // interactionCredits: Number(dashboard.creditStats.interactionPoints || 0),
+      }
+    : null;
 
   return {
-    dashboard,
+    credits: creditStats,
     loading,
     error,
-    creditStats: dashboard?.creditStats || {},
-    engagementStats: dashboard?.engagementStats || {},
-    posts: dashboard?.posts || {},
-  }
-}
+  };
+};

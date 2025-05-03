@@ -1,15 +1,32 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Coins, Award, Calendar, Users } from "lucide-react"
-import { StatCard, ProgressBar } from "./StatComponents"
-import { useCredits } from "@/hooks/useCredits"
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Coins, Award, Calendar, Users } from 'lucide-react';
+import { StatCard, ProgressBar } from './StatComponents';
+import userService from '@/services/userService'; // adjust this import path as needed
 
 const UserCreditStats = () => {
-  const { credits, loading } = useCredits()
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Enhanced debug logging
-  console.log('Credits data:', credits)
-  console.log('Loading state:', loading)
-  console.log('Credits type:', typeof credits)
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const data = await userService.getDashboard();
+        setDashboardData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch dashboard:', err);
+        setError('Unable to load credit data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
+  const credits = dashboardData?.creditStats;
 
   if (loading) {
     return (
@@ -26,36 +43,36 @@ const UserCreditStats = () => {
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  // Add error state check
-  if (!credits) {
-    console.error('Credits data is undefined or null')
+  if (error || !credits) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Credit Statistics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-gray-500">
-            Unable to load credit data. Please try again later.
-          </div>
+          <pre className="text-left text-sm bg-gray-100 p-4 rounded-md overflow-x-auto">
+            {dashboardData
+              ? JSON.stringify(dashboardData, null, 2)
+              : error || 'Unable to load data.'}
+          </pre>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   const creditData = {
     totalCredits: Number(credits.totalCredits) || 0,
     loginCredits: Number(credits.loginCredits) || 0,
     profileCredits: Number(credits.profileCredits) || 0,
-    interactionCredits: Number(credits.interactionCredits) || 0
-  }
+    interactionCredits: Number(credits.interactionCredits) || 0,
+  };
 
-  // Calculate total if not provided
-  const totalCredits = creditData.totalCredits || 
-    (creditData.loginCredits + creditData.profileCredits + creditData.interactionCredits)
+  const totalCredits =
+    creditData.totalCredits ||
+    creditData.loginCredits + creditData.profileCredits + creditData.interactionCredits;
 
   return (
     <Card>
@@ -106,7 +123,7 @@ const UserCreditStats = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default UserCreditStats
+export default UserCreditStats;
