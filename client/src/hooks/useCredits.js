@@ -1,27 +1,26 @@
 "use client"
 
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { creditService } from '@/services/creditService';
-import { setCredits } from '@/store/slices/creditSlice';
+import { useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { fetchUserDashboard } from "../redux/slices/creditSlice"
 
 export const useCredits = () => {
-  const dispatch = useDispatch();
-  const credits = useSelector((state) => state.credits.data);
-  const loading = useSelector((state) => state.credits.loading);
+  const dispatch = useDispatch()
+
+  const dashboard = useSelector((state) => state.credits.dashboard)
+  const loading = useSelector((state) => state.credits.loading)
+  const error = useSelector((state) => state.credits.error)
 
   useEffect(() => {
-    const fetchCredits = async () => {
-      try {
-        const response = await creditService.getUserCredits();
-        dispatch(setCredits(response.data));
-      } catch (error) {
-        console.error('Error fetching credits:', error);
-      }
-    };
+    dispatch(fetchUserDashboard())
+  }, [dispatch])
 
-    fetchCredits();
-  }, [dispatch]);
-
-  return { credits, loading };
-};
+  return {
+    dashboard,
+    loading,
+    error,
+    creditStats: dashboard?.creditStats || {},
+    engagementStats: dashboard?.engagementStats || {},
+    posts: dashboard?.posts || {},
+  }
+}

@@ -1,14 +1,19 @@
-// src/App.jsx
-import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import AppRoutes from './routes/AppRouter';
+import { Provider } from "react-redux"
+import  store  from "../src/redux/store"
+import { ThemeProvider } from "./context/ThemeContext"
+import AppRouter from "./routes/AppRouter"
+import "./App.css"
+import { Toaster } from 'react-hot-toast';
 
-const App = () => {
+function App() {
   return (
-    <Router>
-      <AppRoutes /> {/* Use AppRoutes to handle all the routing */}
-    </Router>
-  );
-};
+    <Provider store={store}>
+      <ThemeProvider>
+      <Toaster position="top-right" reverseOrder={false} />
+        <AppRouter />
+      </ThemeProvider>
+    </Provider>
+  )
+}
 
-export default App;
+export default App

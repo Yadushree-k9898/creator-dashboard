@@ -77,3 +77,26 @@ exports.login = async (req, res, next) => {
     next(err);
   }
 };
+
+// Logout user
+exports.logout = (req, res) => {
+  // Client-side handles the removal of token from storage (localStorage/sessionStorage)
+  // In the backend, you may clear any session data (if using sessions, not typically required with JWT)
+  res.status(200).json({ message: 'Successfully logged out' });
+};
+
+// Fetch current user (requires token)
+exports.fetchCurrentUser = async (req, res, next) => {
+  try {
+    const user = req.user; // This will be set by the auth middleware (jwt middleware)
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Fetch user data and return
+    const userData = await User.findById(user._id).select('-password');
+    res.status(200).json({ user: userData });
+  } catch (err) {
+    next(err);
+  }
+};

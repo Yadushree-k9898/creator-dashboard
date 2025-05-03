@@ -6,10 +6,10 @@ import { fetchSavedPosts } from "../../redux/slices/feedSlice"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Layout } from "../../components/layout/Layout"
-import { SectionTitle } from "../../components/common/SectionTitle"
+import  SectionTitle  from "../../components/common/SectionTitle"
 import FeedItem from "../../components/feed/FeedItem"
-import { Spinner } from "../../components/common/Spinner"
-import { ErrorAlert } from "../../components/common/ErrorAlert"
+import  Spinner  from "../../components/common/Spinner"
+import  ErrorAlert  from "../../components/common/ErrorAlert"
 
 const SavedFeedPage = () => {
   const dispatch = useDispatch()

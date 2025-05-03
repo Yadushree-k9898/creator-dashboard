@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Search } from "lucide-react"
-import { Spinner } from "../common/Spinner"
-import { ErrorAlert } from "../common/ErrorAlert"
+import  Spinner  from "../common/Spinner"
+import  ErrorAlert  from "../common/ErrorAlert"
 
 const FeedList = () => {
   const dispatch = useDispatch()

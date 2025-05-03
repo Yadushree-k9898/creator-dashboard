@@ -1,54 +1,92 @@
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import LoginPage from '../pages/Auth/Login';
-import RegisterPage from '../pages/Auth/Register';
-import UserDashboard from '../pages/Dashboard/UserDashboard';
-import AdminDashboard from '../pages/Dashboard/AdminDashboard';
-import HomePage from '../pages/home/HomePage'; // Import the HomePage component
-import ProtectedRoute from './ProtectedRoute';
-import { useSelector } from 'react-redux';
+// src/routes/AppRouter.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { useUserRole } from "../hooks/useUserRole";
 
-const AppRoutes = () => {
-  const { user } = useSelector((state) => state.auth);
+// Layout
+import { Layout } from "../components/layout/Layout";
+
+// Auth Pages
+import Login from "../pages/Auth/Login";
+import Register from "../pages/Auth/Register";
+import Logout from "../pages/Auth/Logout";
+
+// Home Page
+import HomePage from "../pages/home/HomePage";
+
+// Dashboard Pages
+import UserDashboard from "../pages/Dashboard/UserDashboard";
+import AdminDashboard from "../pages/Dashboard/AdminDashboard";
+import ProfileSettings from "../pages/Dashboard/ProfileSettings";
+
+// Feed Pages
+import FeedPage from "../pages/Feed/FeedPage";
+import SavedFeedPage from "../pages/Feed/SavedFeedPage";
+
+// Not Found
+import NotFound from "../pages/NotFound";
+
+// Protected Route Component
+import ProtectedRoute from "./ProtectedRoute";
+
+// Import RoleBasedRoute with the correct path
+import { RoleBasedRoute } from "./RoleBasedRoute";
+
+const AppRouter = () => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const { isAdmin } = useUserRole();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <Routes>
-      {/* Home page route */}
-      <Route path="/" element={<HomePage />} />
+    <Router>
+      <Layout>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
 
-      {/* Login and Register routes */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+          {/* Auth Routes */}
+          <Route path="/auth/login" element={isAuthenticated ? <Navigate to="/dashboard/user" /> : <Login />} />
+          <Route path="/auth/register" element={isAuthenticated ? <Navigate to="/dashboard/user" /> : <Register />} />
+          <Route path="/auth/logout" element={<Logout />} />
 
-      {/* Shared dynamic route */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            {user?.role === 'admin' ? <AdminDashboard /> : <UserDashboard />}
-          </ProtectedRoute>
-        }
-      />
+          {/* Protected Routes - User */}
+          <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+            <Route path="/dashboard/user" element={<UserDashboard />} />
+            <Route path="/dashboard/profile" element={<ProfileSettings />} />
+            <Route path="/feed" element={<FeedPage />} />
+            <Route path="/feed/saved" element={<SavedFeedPage />} />
+          </Route>
 
-      {/* Explicit role-based routes */}
-      <Route
-        path="/user/dashboard"
-        element={
-          <ProtectedRoute>
-            <UserDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/admin/dashboard"
-        element={
-          <ProtectedRoute>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+          {/* Protected Routes - Admin Only */}
+          <Route
+            element={
+              <RoleBasedRoute
+                isAuthenticated={isAuthenticated}
+                isAuthorized={isAdmin}
+                redirectPath="/dashboard/user"
+              />
+            }
+          >
+            <Route path="/dashboard/admin" element={<AdminDashboard />} />
+            <Route path="/dashboard/users" element={<AdminDashboard />} />
+            <Route path="/dashboard/credits" element={<AdminDashboard />} />
+            <Route path="/dashboard/reports" element={<AdminDashboard />} />
+          </Route>
+
+          {/* 404 Not Found */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 };
 
-export default AppRoutes;
+export default AppRouter;
