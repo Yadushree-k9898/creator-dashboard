@@ -1,0 +1,3 @@
+import Layout from '../components/layout/Layout'
+
+// ...existing code...
