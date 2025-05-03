@@ -15,7 +15,7 @@ const ProfileSettings = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get('/api/users/profile', {
+      const { data } = await axios.get('http://localhost:5000/api/users/profile', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -46,7 +46,7 @@ const ProfileSettings = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const { data } = await axios.put('/api/users/profile', formData, {
+      const { data } = await axios.put('http://localhost:5000/api/users/profile', formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }

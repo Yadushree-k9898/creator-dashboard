@@ -95,13 +95,13 @@ const Sidebar = () => {
           </ul>
         </nav>
 
-        <div className="p-4 border-t dark:border-gray-700 mt-auto">
+        {/* <div className="p-4 border-t dark:border-gray-700 mt-auto">
           <div className="flex items-center justify-between">
             <div className="text-xs text-gray-500 dark:text-gray-400">
               © {new Date().getFullYear()} Creator Dashboard
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </aside>
   )

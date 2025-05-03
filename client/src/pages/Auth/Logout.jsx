@@ -11,7 +11,7 @@ const Logout = () => {
 
   const handleLogout = () => {
     dispatch(logout())
-    navigate("/login") // Redirect to login page
+    navigate("/login") 
   }
 
   return (
