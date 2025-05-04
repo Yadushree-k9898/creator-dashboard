@@ -3,12 +3,14 @@ const axios = require('axios');
 const SavedPost = require('../models/SavedPost');
 const User = require('../models/User');
 const { awardSavePostCredits } = require('../services/creditService');
-const redisClient = require('../utils/redisClient');
+const { getCache, setCache} = require('../config/redisClient');
+const { fetchRedditPosts } = require('../services/feedService');
+
 
 // Helper function to fetch Reddit posts
 const fetchRedditPostsInternal = async () => {
   const { data } = await axios.get('https://www.reddit.com/r/popular.json', {
-    params: { limit: 10 },
+    params: { limit: 10 }, // Fetching 10 posts, adjust as needed
     headers: { 'User-Agent': process.env.REDDIT_USER_AGENT || 'creator-dashboard/1.0' }
   });
   return data.data.children.map(c => {
@@ -23,6 +25,36 @@ const fetchRedditPostsInternal = async () => {
     };
   });
 };
+
+// Fetch Reddit posts with caching
+exports.fetchRedditPosts = async (req, res) => {
+  const cacheKey = 'reddit:popular';
+  
+  try {
+    // Check if Reddit posts are cached
+    const cachedData = await getCache(cacheKey);
+    if (cachedData) {
+      console.log('Returning cached Reddit posts');
+      return res.json({ posts: JSON.parse(cachedData) });
+    }
+
+    // Fetch the posts from Reddit API
+    const posts = await fetchRedditPostsInternal();
+    console.log('Fetched new Reddit posts from API');
+    
+    // Cache the fetched posts for 5 minutes (300 seconds)
+    await setCache(cacheKey, 300, JSON.stringify(posts));
+
+    // Return the fetched posts
+    return res.json({ posts });
+
+  } catch (err) {
+    console.error('Error fetching Reddit posts:', err);
+    return res.status(500).json({ message: 'Failed to fetch Reddit posts' });
+  }
+};
+
+
 
 // Helper function to fetch Twitter posts
 const fetchTwitterPostsInternal = async (overrideQuery) => {
@@ -47,36 +79,19 @@ const fetchTwitterPostsInternal = async (overrideQuery) => {
   }));
 };
 
-// GET /api/feed/reddit
-exports.fetchRedditPosts = async (req, res) => {
-  const cacheKey = 'reddit:popular';
-  try {
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      return res.json({ posts: JSON.parse(cachedData) });
-    }
-
-    const posts = await fetchRedditPostsInternal();
-    await redisClient.setEx(cacheKey, 300, JSON.stringify(posts)); // Cache for 5 minutes
-    res.json({ posts });
-  } catch (err) {
-    console.error('Error fetching Reddit posts:', err);
-    res.status(500).json({ message: 'Failed to fetch Reddit posts' });
-  }
-};
 
 // GET /api/feed/twitter
 exports.fetchTwitterPosts = async (req, res) => {
   const searchQuery = req.query.q || 'default';
   const cacheKey = `twitter:${searchQuery}`;
   try {
-    const cachedData = await redisClient.get(cacheKey);
+    const cachedData = await getCache(cacheKey);
     if (cachedData) {
       return res.json({ posts: JSON.parse(cachedData) });
     }
 
     const posts = await fetchTwitterPostsInternal(searchQuery);
-    await redisClient.setEx(cacheKey, 300, JSON.stringify(posts)); // Cache for 5 minutes
+    await setCache(cacheKey, 300, JSON.stringify(posts)); // Cache for 5 minutes
     res.json({ posts });
   } catch (err) {
     console.error('Error fetching Twitter posts:', err);

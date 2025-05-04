@@ -61,12 +61,28 @@ export const sharePost = async (postData) => {
 }
 
 // Get saved posts
+// export const getSavedPosts = async () => {
+//   try {
+//     const response = await axios.get(`${API_URL}/saved`)
+//     return response.data
+//   } catch (error) {
+//     console.error("Error fetching saved posts:", error)
+//     throw error
+//   }
+// }
+
+
 export const getSavedPosts = async () => {
   try {
-    const response = await axios.get(`${API_URL}/saved`)
-    return response.data
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${API_URL}/saved`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
   } catch (error) {
-    console.error("Error fetching saved posts:", error)
-    throw error
+    console.error("Error fetching saved posts:", error);
+    throw error;
   }
 }

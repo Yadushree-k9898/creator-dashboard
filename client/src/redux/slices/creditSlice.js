@@ -2,14 +2,31 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/users/dashboard";
+const API_URL = "http://localhost:5000/api/users/dashboard"; 
+
+// export const fetchUserDashboard = createAsyncThunk(
+//   "credits/fetchDashboard",
+//   async (_, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.get(API_URL, {
+//         withCredentials: true,
+//       });
+//       return response.data;
+//     } catch (err) {
+//       return rejectWithValue(err.response?.data?.message || "Failed to fetch dashboard");
+//     }
+//   }
+// );
 
 export const fetchUserDashboard = createAsyncThunk(
   "credits/fetchDashboard",
   async (_, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("token"); // or use Redux state if you store it there
       const response = await axios.get(API_URL, {
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       return response.data;
     } catch (err) {

@@ -4,7 +4,8 @@ const SavedPost = require('../models/SavedPost');
 const Credits = require('../models/Credits');
 const ActivityLog = require('../models/ActivityLog');
 const { generateToken } = require('../utils/tokenUtils');
-const { getCache, setCache } = require('../config/redisClient');
+const { getCache, setCache , deleteCache} = require('../config/redisClient');
+
 
 const { 
   awardLoginCredits,
@@ -18,38 +19,36 @@ const redisClient = require('../utils/redisClient'); // Import the Redis client
 // @desc    Get current user's profile
 // @route   GET /api/users/profile
 // @access  Private (User, Admin)
+
 exports.getProfile = async (req, res, next) => {
   try {
-    // Check Redis cache first
-    const cachedUserProfile = await redisClient.get(`userProfile:${req.user._id}`);
-    
+    const cacheKey = `userProfile:${req.user._id}`;
+
+    // ✅ Use custom Redis utility
+    const cachedUserProfile = await getCache(cacheKey);
     if (cachedUserProfile) {
-      console.log('Cache hit');
-      return res.status(200).json(JSON.parse(cachedUserProfile)); // Send cached profile
+      console.log('✅ Cache hit');
+      return res.status(200).json(cachedUserProfile);
     }
 
-    // Fetch user from MongoDB if not found in cache
+    // Fetch user from DB
     const user = await User.findById(req.user._id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Award daily login credits
+    // Award login credits
     await awardLoginCredits(user);
 
-    // Log the login activity
+    // Log activity if new day
     const today = new Date().toISOString().split('T')[0];
     const lastLogin = user.lastLogin ? user.lastLogin.toISOString().split('T')[0] : null;
-    
-    // Only log if it's a different day than the last login
     if (today !== lastLogin) {
-      const activity = new ActivityLog({
+      await ActivityLog.create({
         user: user._id,
         action: 'LOGIN',
         details: `User logged in on ${new Date().toLocaleDateString()}`
       });
-      await activity.save();
     }
 
-    // Prepare profile data
     const userProfile = {
       _id: user._id,
       name: user.name,
@@ -61,61 +60,60 @@ exports.getProfile = async (req, res, next) => {
       lastLogin: user.lastLogin,
     };
 
-    // Cache the profile in Redis for 1 hour (3600 seconds)
-    await redisClient.setex(`userProfile:${req.user._id}`, 3600, JSON.stringify(userProfile));
+    // ✅ Cache the profile using your setCache utility
+    await setCache(cacheKey, userProfile, 3600);
 
-    // Send response with user profile
     res.status(200).json(userProfile);
   } catch (err) {
+    console.error('❌ getProfile error:', err);
     next(err);
   }
 };
 
 
 
+
 // @desc    Update current user's profile
 // @route   PUT /api/users/profile
 // @access  Private (User, Admin)
+
 exports.updateProfile = async (req, res, next) => {
   try {
-    // Invalidate the cached profile if it exists
-    await redisClient.del(`userProfile:${req.user._id}`);
+    const userId = req.user._id;
+    const cacheKey = `userProfile:${userId}`;
 
-    const user = await User.findById(req.user._id);
+    // Invalidate cached profile
+    await deleteCache(cacheKey);
+
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const { name, bio, email } = req.body;
 
-    // Update user profile fields
     if (name) user.name = name;
     if (bio) user.bio = bio;
     if (email) user.email = email;
 
-    // Save the basic profile changes first
     await user.save();
-    
+
     // Award profile completion credits if applicable
-    // The credit service will handle updating both the Credits and User schemas
     const credits = await awardProfileCompletionCredits(user._id);
-    
-    // Log profile completion activity if the profile was just completed
+
+    // Log activity if profile was just completed
     if (!user.profileCompleted && name && bio && email) {
       const activity = new ActivityLog({
         user: user._id,
         action: 'PROFILE_COMPLETION',
-        details: 'User completed their profile'
+        details: 'User completed their profile',
       });
       await activity.save();
     }
 
     // Award daily login credits (if not already awarded today)
-    // The credit service will handle updating both the Credits and User schemas
     await awardLoginCredits(user._id);
 
-    // Get the updated user with the latest credit information
     const updatedUser = await User.findById(user._id);
 
-    // Prepare the updated user profile data
     const updatedUserProfile = {
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -127,18 +125,20 @@ exports.updateProfile = async (req, res, next) => {
       lastLogin: updatedUser.lastLogin,
     };
 
-    // Cache the updated profile in Redis for 1 hour (3600 seconds)
-    await redisClient.setex(`userProfile:${updatedUser._id}`, 3600, JSON.stringify(updatedUserProfile));
+    // Cache the updated profile for 1 hour
+    await setCache(cacheKey, updatedUserProfile, 3600);
 
     res.status(200).json({
       message: 'Profile updated successfully',
       user: updatedUserProfile,
-      token: generateToken(updatedUser), // Optional: regenerate token after update
+      token: generateToken(updatedUser),
     });
   } catch (err) {
     next(err);
   }
 };
+
+
 
 
 
