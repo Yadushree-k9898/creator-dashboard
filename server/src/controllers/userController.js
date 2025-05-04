@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const SavedPost = require('../models/SavedPost');
+const Credits = require('../models/Credits');
+const ActivityLog = require('../models/ActivityLog');
 const { generateToken } = require('../utils/tokenUtils');
+const { getCache, setCache } = require('../config/redisClient');
+
 const { 
   awardLoginCredits,
   awardProfileCompletionCredits,
@@ -8,16 +13,22 @@ const {
   awardReportPostCredits,
   awardSharePostCredits
 } = require('../services/creditService');
-const SavedPost = require('../models/SavedPost');
-const Credits = require('../models/Credits');
-const ActivityLog = require('../models/ActivityLog');
-
+const redisClient = require('../utils/redisClient'); // Import the Redis client
 
 // @desc    Get current user's profile
 // @route   GET /api/users/profile
 // @access  Private (User, Admin)
 exports.getProfile = async (req, res, next) => {
   try {
+    // Check Redis cache first
+    const cachedUserProfile = await redisClient.get(`userProfile:${req.user._id}`);
+    
+    if (cachedUserProfile) {
+      console.log('Cache hit');
+      return res.status(200).json(JSON.parse(cachedUserProfile)); // Send cached profile
+    }
+
+    // Fetch user from MongoDB if not found in cache
     const user = await User.findById(req.user._id).select('-password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -38,7 +49,8 @@ exports.getProfile = async (req, res, next) => {
       await activity.save();
     }
 
-    res.status(200).json({
+    // Prepare profile data
+    const userProfile = {
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -47,17 +59,28 @@ exports.getProfile = async (req, res, next) => {
       credits: user.credits || 0,
       profileCompleted: user.profileCompleted || false,
       lastLogin: user.lastLogin,
-    });
+    };
+
+    // Cache the profile in Redis for 1 hour (3600 seconds)
+    await redisClient.setex(`userProfile:${req.user._id}`, 3600, JSON.stringify(userProfile));
+
+    // Send response with user profile
+    res.status(200).json(userProfile);
   } catch (err) {
     next(err);
   }
 };
 
+
+
 // @desc    Update current user's profile
 // @route   PUT /api/users/profile
-// @access  Private (User)
+// @access  Private (User, Admin)
 exports.updateProfile = async (req, res, next) => {
   try {
+    // Invalidate the cached profile if it exists
+    await redisClient.del(`userProfile:${req.user._id}`);
+
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -92,18 +115,24 @@ exports.updateProfile = async (req, res, next) => {
     // Get the updated user with the latest credit information
     const updatedUser = await User.findById(user._id);
 
+    // Prepare the updated user profile data
+    const updatedUserProfile = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      bio: updatedUser.bio,
+      role: updatedUser.role,
+      credits: updatedUser.credits,
+      profileCompleted: updatedUser.profileCompleted,
+      lastLogin: updatedUser.lastLogin,
+    };
+
+    // Cache the updated profile in Redis for 1 hour (3600 seconds)
+    await redisClient.setex(`userProfile:${updatedUser._id}`, 3600, JSON.stringify(updatedUserProfile));
+
     res.status(200).json({
       message: 'Profile updated successfully',
-      user: {
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        bio: updatedUser.bio,
-        role: updatedUser.role,
-        credits: updatedUser.credits,
-        profileCompleted: updatedUser.profileCompleted,
-        lastLogin: updatedUser.lastLogin,
-      },
+      user: updatedUserProfile,
       token: generateToken(updatedUser), // Optional: regenerate token after update
     });
   } catch (err) {
@@ -111,12 +140,28 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
+
+
+
 // @desc    Save a post to user's saved posts
 // @route   POST /api/users/save-post
 // @access  Private (User)
 exports.savePost = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id);
+    const userId = req.user._id;
+
+    // Check Redis cache for the user's saved posts before continuing
+    const cachedUserProfile = await redisClient.get(`userProfile:${userId}`);
+    if (cachedUserProfile) {
+      const cachedProfile = JSON.parse(cachedUserProfile);
+      return res.status(200).json({
+        message: 'Post saved successfully',
+        savedPost: req.body, // For simplicity, returning the same data
+        credits: cachedProfile.credits
+      });
+    }
+
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const { postId, source, title, url, content } = req.body;
@@ -139,9 +184,8 @@ exports.savePost = async (req, res, next) => {
     await user.save();
 
     // Award credits for saving a post
-    // The credit service will handle updating both the Credits and User schemas
     const credits = await awardSavePostCredits(user._id);
-    
+
     // Log the activity
     const activity = new ActivityLog({
       user: user._id,
@@ -150,9 +194,22 @@ exports.savePost = async (req, res, next) => {
       details: `Saved a ${source} post: ${title.substring(0, 30)}...`
     });
     await activity.save();
-    
+
     // Get the updated user with the latest credit information
     const updatedUser = await User.findById(user._id);
+
+    // Cache the updated user profile in Redis for 1 hour
+    const updatedUserProfile = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      bio: updatedUser.bio,
+      role: updatedUser.role,
+      credits: updatedUser.credits,
+      profileCompleted: updatedUser.profileCompleted,
+      lastLogin: updatedUser.lastLogin,
+    };
+    await redisClient.setex(`userProfile:${updatedUser._id}`, 3600, JSON.stringify(updatedUserProfile));
 
     res.status(200).json({
       message: 'Post saved successfully',
@@ -164,16 +221,32 @@ exports.savePost = async (req, res, next) => {
   }
 };
 
+
+
 // @desc    Get user's activity log
 // @route   GET /api/users/activity-log
 // @access  Private (User)
 exports.getActivityLog = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id); // Get current user
+    const userId = req.user._id;
+
+    // Check Redis cache for activity logs before continuing
+    const cachedActivityLogs = await redisClient.get(`activityLogs:${userId}`);
+    if (cachedActivityLogs) {
+      // If activity logs are cached, return them from Redis
+      return res.status(200).json(JSON.parse(cachedActivityLogs));
+    }
+
+    // Fetch the user from the database
+    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Retrieve the user's activity logs
-    const activityLogs = await ActivityLog.find({ user: user._id }).sort({ timestamp: -1 }); // Sort by most recent activity
+    // Retrieve the user's activity logs from the database
+    const activityLogs = await ActivityLog.find({ user: user._id })
+      .sort({ timestamp: -1 }); // Sort by most recent activity
+
+    // Cache the fetched activity logs in Redis for 1 hour
+    await redisClient.setex(`activityLogs:${userId}`, 3600, JSON.stringify(activityLogs));
 
     res.status(200).json(activityLogs);
   } catch (err) {
@@ -181,11 +254,11 @@ exports.getActivityLog = async (req, res, next) => {
   }
 };
 
-// @desc    Report a saved post
-// @route   PUT /api/users/report-post/:postId
-// @access  Private (User)
+
+
+
 // @desc    Report a post
-// @route   PUT /api/users/report-post/:postId
+// @route   POST /api/users/report-post/:postId
 // @access  Private (User)
 exports.reportPost = async (req, res, next) => {
   try {
@@ -199,39 +272,57 @@ exports.reportPost = async (req, res, next) => {
     let postId = req.params.postId;
     let savedPost = null;
     
-    // If we have a postId, try to find that specific post
-    if (postId && postId !== 'undefined') {
-      try {
-        savedPost = await SavedPost.findOne({ _id: postId, user: user._id });
-        console.log('Found post by ID:', savedPost ? savedPost._id : 'Not found');
-      } catch (error) {
-        console.log('Error finding post by ID:', error.message);
+    // Check Redis cache for reported status before querying the database
+    const cachedPostStatus = await redisClient.get(`reportedPostStatus:${user._id}:${postId}`);
+    if (cachedPostStatus) {
+      console.log('Found cached report status:', cachedPostStatus);
+      savedPost = JSON.parse(cachedPostStatus);
+      if (savedPost.reported) {
+        // If the post is reported in the cache, return the response early
+        return res.status(200).json({
+          message: 'Post was already reported',
+          post: {
+            _id: savedPost._id,
+            title: savedPost.title,
+            source: savedPost.source,
+            reported: true
+          }
+        });
       }
     }
     
-    // If no post found by ID, find any unreported post
+    // If no post found in cache, check the database
     if (!savedPost) {
-      console.log('Looking for any unreported post');
-      savedPost = await SavedPost.findOne({ user: user._id, reported: false });
-      console.log('Found unreported post:', savedPost ? savedPost._id : 'Not found');
+      if (postId && postId !== 'undefined') {
+        // Find the post by ID
+        savedPost = await SavedPost.findOne({ _id: postId, user: user._id });
+        console.log('Found post by ID:', savedPost ? savedPost._id : 'Not found');
+      }
+
+      // If no post found by ID, find any unreported post
+      if (!savedPost) {
+        console.log('Looking for any unreported post');
+        savedPost = await SavedPost.findOne({ user: user._id, reported: false });
+        console.log('Found unreported post:', savedPost ? savedPost._id : 'Not found');
+      }
+
+      // If still no post found, create a sample post
+      if (!savedPost) {
+        console.log('Creating a sample post for reporting');
+        savedPost = new SavedPost({
+          user: user._id,
+          title: 'Sample Post for Reporting',
+          source: 'Twitter',
+          url: 'https://twitter.com/example/status/123456789',
+          content: 'This is a sample post created for reporting purposes',
+          reported: false,
+          shared: false
+        });
+        await savedPost.save();
+        console.log('Created new sample post with ID:', savedPost._id);
+      }
     }
-    
-    // If still no post found, create a sample post
-    if (!savedPost) {
-      console.log('Creating a sample post for reporting');
-      savedPost = new SavedPost({
-        user: user._id,
-        title: 'Sample Post for Reporting',
-        source: 'Twitter',
-        url: 'https://twitter.com/example/status/123456789',
-        content: 'This is a sample post created for reporting purposes',
-        reported: false,
-        shared: false
-      });
-      await savedPost.save();
-      console.log('Created new sample post with ID:', savedPost._id);
-    }
-    
+
     // Mark the post as reported if it's not already
     if (!savedPost.reported) {
       savedPost.reported = true;
@@ -252,6 +343,9 @@ exports.reportPost = async (req, res, next) => {
       await activity.save();
       console.log('Activity logged');
       
+      // Cache the post's reported status in Redis
+      await redisClient.setex(`reportedPostStatus:${user._id}:${savedPost._id}`, 3600, JSON.stringify(savedPost));
+
       // Get the current reported posts count
       const reportedPostsCount = await SavedPost.countDocuments({ user: user._id, reported: true });
       
@@ -268,7 +362,7 @@ exports.reportPost = async (req, res, next) => {
         reportedPostsCount: reportedPostsCount
       });
     } else {
-      // Post was already reported
+      // Post was already reported (either in DB or cache)
       console.log('Post was already reported');
       return res.status(200).json({
         message: 'Post was already reported',
@@ -286,6 +380,9 @@ exports.reportPost = async (req, res, next) => {
   }
 };
 
+
+
+
 // @desc    Share a post
 // @route   POST /api/users/share-post/:postId
 // @access  Private (User)
@@ -295,17 +392,39 @@ exports.sharePost = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Find the post to share - first try with the exact ID
-    let savedPost;
+    // Check Redis cache for shared post status
+    const cachedPostStatus = await redisClient.get(`sharedPostStatus:${user._id}:${postId}`);
+    let savedPost = null;
+
+    if (cachedPostStatus) {
+      console.log('Found cached shared post status:', cachedPostStatus);
+      savedPost = JSON.parse(cachedPostStatus);
+      if (savedPost.shared) {
+        // Post is already shared, return cached result
+        return res.status(200).json({
+          message: 'Post has already been shared',
+          post: {
+            _id: savedPost._id,
+            title: savedPost.title,
+            source: savedPost.source,
+            shared: savedPost.shared
+          },
+          credits: user.credits,
+          sharedPostsCount: user.sharedPostsCount || 0
+        });
+      }
+    }
+
+    // If not found in cache, proceed to query the database
     try {
-      // Try to find by ID, handling potential invalid ObjectId errors
       savedPost = await SavedPost.findOne({ _id: postId, user: user._id });
+      console.log('Found post by ID:', savedPost ? savedPost._id : 'Not found');
     } catch (error) {
       console.log('Error finding post by ID, likely invalid ObjectId:', error.message);
       savedPost = null;
     }
-    
-    // If not found by ID, try to find any post that belongs to the user
+
+    // If no post found by ID, find any post that belongs to the user
     if (!savedPost) {
       console.log('Post not found by ID, trying to find any post');
       savedPost = await SavedPost.findOne({ user: user._id });
@@ -326,9 +445,10 @@ exports.sharePost = async (req, res, next) => {
       }
     }
 
-    // Mark as shared
+    // Mark the post as shared
     savedPost.shared = true;
     await savedPost.save();
+    console.log('Post marked as shared');
 
     // Award credits for sharing the post
     const credits = await awardSharePostCredits(user._id);
@@ -341,12 +461,17 @@ exports.sharePost = async (req, res, next) => {
       details: `Shared a ${savedPost.source} post: ${savedPost.title.substring(0, 30)}...`
     });
     await activity.save();
+    console.log('Activity logged');
 
     // Update user's total credits
     await User.findByIdAndUpdate(user._id, { credits: credits.totalCredits });
+    console.log('User credits updated');
 
-    // Return updated response with more details
-    res.status(200).json({ 
+    // Cache the shared status in Redis
+    await redisClient.setex(`sharedPostStatus:${user._id}:${savedPost._id}`, 3600, JSON.stringify(savedPost));
+
+    // Return success response with updated details
+    return res.status(200).json({
       message: 'Post shared successfully',
       post: {
         _id: savedPost._id,
@@ -363,14 +488,15 @@ exports.sharePost = async (req, res, next) => {
   }
 };
 
-// @desc    Get user dashboard
-// @route   GET /api/users/dashboard
-// @access  Private (User)
-
-
-
 exports.getUserDashboard = async (req, res) => {
   try {
+    // Try to fetch the cached data for the user dashboard
+    const cachedDashboard = await getCache(`user_dashboard_${req.user._id}`);
+    if (cachedDashboard) {
+      console.log('Returning cached user dashboard data');
+      return res.status(200).json(cachedDashboard);
+    }
+
     // Fetch user details
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -413,7 +539,7 @@ exports.getUserDashboard = async (req, res) => {
     // Get the last login date from the activity log
     const lastLoginActivity = await ActivityLog.findOne(
       { user: req.user._id, action: 'LOGIN' },
-      {},
+      {} ,
       { sort: { createdAt: -1 } }
     );
 
@@ -534,7 +660,7 @@ exports.getUserDashboard = async (req, res) => {
     const totalSharedPostsCount = await SavedPost.countDocuments({ user: req.user._id, shared: true });
     
     // Prepare the response
-    res.status(200).json({
+    const dashboardData = {
       profile: {
         name: user.name || 'User',
         email: user.email || 'No email provided',
@@ -584,7 +710,13 @@ exports.getUserDashboard = async (req, res) => {
         }))
       },
       recentActivity: formattedActivity
-    });
+    };
+
+    // Cache the result in Redis for future requests
+    await setCache(`user_dashboard_${req.user._id}`, dashboardData);
+
+    // Send the response
+    res.status(200).json(dashboardData);
   } catch (error) {
     console.error('Error fetching dashboard:', error);
     res.status(500).json({ message: 'Error fetching dashboard data' });

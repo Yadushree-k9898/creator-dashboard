@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { generateToken } = require('../utils/tokenUtils');
 const { awardLoginCredits } = require('../services/creditService');
 const Credits = require('../models/Credits');
+const { redisClient, ensureConnection } = require('../config/redisClient');
 
 // Register new user
 exports.register = async (req, res, next) => {
@@ -40,7 +41,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// Login existing user
+
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -60,7 +61,11 @@ exports.login = async (req, res, next) => {
     // Award login credits - handle this after sending response
     const credits = await awardLoginCredits(user._id);
 
-    // Get updated user data
+    // Cache user data in Redis after successful login
+    await ensureConnection();
+    await redisClient.set(`user:${user._id}`, JSON.stringify(user), 'EX', 3600); // Cache for 1 hour
+
+    // Get updated user data without password
     const updatedUser = await User.findById(user._id).select('-password');
 
     res.status(200).json({
@@ -78,6 +83,7 @@ exports.login = async (req, res, next) => {
   }
 };
 
+
 // Logout user
 exports.logout = (req, res) => {
   // Client-side handles the removal of token from storage (localStorage/sessionStorage)
@@ -93,9 +99,26 @@ exports.fetchCurrentUser = async (req, res, next) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Fetch user data and return
+    // First check Redis for the user data
+    await ensureConnection();
+    const cachedUser = await redisClient.get(`user:${user._id}`);
+    
+    if (cachedUser) {
+      // If user is in cache, return the cached data
+      return res.status(200).json({ user: JSON.parse(cachedUser) });
+    }
+
+    // If not found in Redis, fetch user data from MongoDB and cache it
     const userData = await User.findById(user._id).select('-password');
-    res.status(200).json({ user: userData });
+    
+    if (userData) {
+      // Cache user data in Redis for future requests
+      await redisClient.setEx(`user:${user._id}`, 3600, JSON.stringify(userData)); // Cache for 1 hour
+      return res.status(200).json({ user: userData });
+    }
+
+    // If user data is not found in DB, return an error
+    res.status(404).json({ message: 'User not found' });
   } catch (err) {
     next(err);
   }

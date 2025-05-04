@@ -1,11 +1,11 @@
-// controllers/feedController.js
 require('dotenv').config();
-const axios     = require('axios');
+const axios = require('axios');
 const SavedPost = require('../models/SavedPost');
-const User      = require('../models/User');
+const User = require('../models/User');
 const { awardSavePostCredits } = require('../services/creditService');
+const redisClient = require('../utils/redisClient');
 
-// Internal helper: fetch real Reddit posts (unchanged)
+// Helper function to fetch Reddit posts
 const fetchRedditPostsInternal = async () => {
   const { data } = await axios.get('https://www.reddit.com/r/popular.json', {
     params: { limit: 10 },
@@ -14,22 +14,22 @@ const fetchRedditPostsInternal = async () => {
   return data.data.children.map(c => {
     const p = c.data;
     return {
-      postId:    p.id,
-      title:     p.title,
-      url:       `https://reddit.com${p.permalink}`,
-      content:   p.selftext || '',
-      source:    'Reddit',
+      postId: p.id,
+      title: p.title,
+      url: `https://reddit.com${p.permalink}`,
+      content: p.selftext || '',
+      source: 'Reddit',
       createdAt: new Date(p.created_utc * 1000),
     };
   });
 };
 
-// ─── ALTERED: fetch real Twitter posts via Twitter API v2 ───
+// Helper function to fetch Twitter posts
 const fetchTwitterPostsInternal = async (overrideQuery) => {
   const url = 'https://api.twitter.com/2/tweets/search/recent';
   const params = {
-    query:         overrideQuery || 'tech OR startup OR javascript',
-    max_results:   10,
+    query: overrideQuery || 'tech OR startup OR javascript',
+    max_results: 10,
     'tweet.fields': 'created_at,text'
   };
   const headers = {
@@ -38,22 +38,26 @@ const fetchTwitterPostsInternal = async (overrideQuery) => {
 
   const { data } = await axios.get(url, { params, headers });
   return (data.data || []).map(tweet => ({
-    postId:    tweet.id,
-    title:     tweet.text.length > 50 
-                 ? tweet.text.slice(0,47) + '...' 
-                 : tweet.text,
-    url:       `https://twitter.com/i/web/status/${tweet.id}`,
-    content:   tweet.text,
-    source:    'Twitter',
+    postId: tweet.id,
+    title: tweet.text.length > 50 ? tweet.text.slice(0, 47) + '...' : tweet.text,
+    url: `https://twitter.com/i/web/status/${tweet.id}`,
+    content: tweet.text,
+    source: 'Twitter',
     createdAt: new Date(tweet.created_at),
   }));
 };
-// ────────────────────────────────────────────────────────────────
 
-// 🛠 GET /api/feed/reddit
+// GET /api/feed/reddit
 exports.fetchRedditPosts = async (req, res) => {
+  const cacheKey = 'reddit:popular';
   try {
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.json({ posts: JSON.parse(cachedData) });
+    }
+
     const posts = await fetchRedditPostsInternal();
+    await redisClient.setEx(cacheKey, 300, JSON.stringify(posts)); // Cache for 5 minutes
     res.json({ posts });
   } catch (err) {
     console.error('Error fetching Reddit posts:', err);
@@ -61,19 +65,24 @@ exports.fetchRedditPosts = async (req, res) => {
   }
 };
 
-// 🛠 GET /api/feed/twitter
-// Now accepts optional ?q=searchTerm
+// GET /api/feed/twitter
 exports.fetchTwitterPosts = async (req, res) => {
+  const searchQuery = req.query.q || 'default';
+  const cacheKey = `twitter:${searchQuery}`;
   try {
-    const searchQuery = req.query.q;
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.json({ posts: JSON.parse(cachedData) });
+    }
+
     const posts = await fetchTwitterPostsInternal(searchQuery);
+    await redisClient.setEx(cacheKey, 300, JSON.stringify(posts)); // Cache for 5 minutes
     res.json({ posts });
   } catch (err) {
     console.error('Error fetching Twitter posts:', err);
     res.status(500).json({ message: 'Failed to fetch Twitter posts' });
   }
 };
-
 // 🛠 POST /api/feed/save
 exports.savePost = async (req, res) => {
   const { postId, title, url, content, source } = req.body;

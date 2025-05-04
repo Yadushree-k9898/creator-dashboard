@@ -1,7 +1,7 @@
 import axios from "axios"
 
-// Base URL for API requests
-const API_URL = "/api/feed"
+
+const API_URL = "http://localhost:5000/api/feed"
 
 // Fetch Reddit posts
 export const fetchRedditPosts = async () => {
@@ -15,17 +15,17 @@ export const fetchRedditPosts = async () => {
 }
 
 // Fetch Twitter posts with optional search query
-export const fetchTwitterPosts = async (searchQuery = "") => {
-  try {
-    const url = searchQuery ? `${API_URL}/twitter?q=${encodeURIComponent(searchQuery)}` : `${API_URL}/twitter`
+// export const fetchTwitterPosts = async (searchQuery = "") => {
+//   try {
+//     const url = searchQuery ? `${API_URL}/twitter?q=${encodeURIComponent(searchQuery)}` : `${API_URL}/twitter`
 
-    const response = await axios.get(url)
-    return response.data.posts
-  } catch (error) {
-    console.error("Error fetching Twitter posts:", error)
-    throw error
-  }
-}
+//     const response = await axios.get(url)
+//     return response.data.posts
+//   } catch (error) {
+//     console.error("Error fetching Twitter posts:", error)
+//     throw error
+//   }
+// }
 
 // Save a post
 export const savePost = async (postData) => {
