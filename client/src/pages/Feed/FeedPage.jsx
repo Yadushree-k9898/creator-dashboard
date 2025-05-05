@@ -29,27 +29,6 @@ const FeedPage = () => {
 
   const isAnyLoading = redditLoading || devtoLoading || savedPostsLoading
   const anyError = redditError || devtoError || savedPostsError
-
-  // useEffect(() => {
-  //   if (activeSource === "reddit" && !redditPosts.length && !redditLoading) {
-  //     dispatch(fetchRedditFeed())
-  //   } else if (activeSource === "devto" && !devtoPosts.length && !devtoLoading) {
-  //     dispatch(fetchDevToPosts(searchQuery))
-  //   } else if (activeSource === "all") {
-  //     if (!redditPosts.length && !redditLoading) {
-  //       dispatch(fetchRedditFeed())
-  //     }
-  //     if (!devtoPosts.length && !devtoLoading) {
-  //       dispatch(fetchDevToPosts(searchQuery))
-  //     }
-  //   }
-
-  //   if (!savedPosts.length && !savedPostsLoading) {
-  //     dispatch(fetchSavedPosts())
-  //   }
-  // }, [dispatch, activeSource, redditPosts.length, devtoPosts.length, savedPosts.length, redditLoading, devtoLoading, savedPostsLoading, searchQuery])
-
-
   useEffect(() => {
     if (activeSource === "reddit" && redditPosts.length === 0) {
       dispatch(fetchRedditFeed())

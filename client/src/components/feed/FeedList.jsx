@@ -1,6 +1,6 @@
 import React from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { setActiveSource, fetchDevToPosts } from "../../redux/slices/feedSlice"
+import { setActiveSource, fetchDevToPosts, fetchRedditFeed } from "../../redux/slices/feedSlice"
 import FeedItem from "./FeedItem"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

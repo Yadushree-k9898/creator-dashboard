@@ -7,7 +7,7 @@ const { getCache, setCache} = require('../config/redisClient');
 const { fetchRedditPosts } = require('../services/feedService');
 
 
-// Helper function to fetch Reddit posts
+
 const fetchRedditPostsInternal = async () => {
   const { data } = await axios.get('https://www.reddit.com/r/popular.json', {
     params: { limit: 10 }, // Fetching 10 posts, adjust as needed
@@ -26,24 +26,39 @@ const fetchRedditPostsInternal = async () => {
   });
 };
 
-// Fetch Reddit posts with caching
+
 exports.fetchRedditPosts = async (req, res) => {
   const cacheKey = 'reddit:popular';
   
   try {
-    // Check if Reddit posts are cached
-    const cachedData = await getCache(cacheKey);
-    if (cachedData) {
-      console.log('Returning cached Reddit posts');
-      return res.json({ posts: JSON.parse(cachedData) });
-    }
-
-    // Fetch the posts from Reddit API
+    const fetchRedditPosts = async (req, res) => {
+      const cacheKey = 'reddit:popular';
+      
+      try {
+        // Try fetching cached data
+        const cachedData = await getCache(cacheKey);
+        if (cachedData) {
+          console.log('Returning cached Reddit posts');
+          return res.json({ posts: JSON.parse(cachedData) });
+        }
+    
+        // Fetch posts from API
+        const posts = await fetchRedditPostsInternal();
+        console.log('Fetched new Reddit posts from API');
+    
+        // Cache the posts for 5 minutes (300 seconds)
+        await setCache(cacheKey, 300, JSON.stringify(posts));
+    
+        // Return the fetched posts
+        return res.json({ posts });
+    
+      } catch (err) {
+        console.error('Error fetching Reddit posts:', err);
+        return res.status(500).json({ message: 'Failed to fetch Reddit posts' });
+      }
+    };
     const posts = await fetchRedditPostsInternal();
     console.log('Fetched new Reddit posts from API');
-    
-    // Cache the fetched posts for 5 minutes (300 seconds)
-    await setCache(cacheKey, 300, JSON.stringify(posts));
 
     // Return the fetched posts
     return res.json({ posts });
@@ -56,32 +71,9 @@ exports.fetchRedditPosts = async (req, res) => {
 
 
 
-// Helper function to fetch Twitter posts
-// const fetchTwitterPostsInternal = async (overrideQuery) => {
-//   const url = 'https://api.twitter.com/2/tweets/search/recent';
-//   const params = {
-//     query: overrideQuery || 'tech OR startup OR javascript',
-//     max_results: 10,
-//     'tweet.fields': 'created_at,text'
-//   };
-//   const headers = {
-//     Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`
-//   };
-
-//   const { data } = await axios.get(url, { params, headers });
-//   return (data.data || []).map(tweet => ({
-//     postId: tweet.id,
-//     title: tweet.text.length > 50 ? tweet.text.slice(0, 47) + '...' : tweet.text,
-//     url: `https://twitter.com/i/web/status/${tweet.id}`,
-//     content: tweet.text,
-//     source: 'Twitter',
-//     createdAt: new Date(tweet.created_at),
-//   }));
-// };
-
 
 const fetchDevToPostsInternal = async (overrideQuery) => {
-  const tag = overrideQuery || 'javascript'; // fallback to 'javascript' if no query
+  const tag = overrideQuery || 'javascript'; 
   const url = `https://dev.to/api/articles`;
   const params = {
     tag,
@@ -101,38 +93,16 @@ const fetchDevToPostsInternal = async (overrideQuery) => {
 };
 
 
-// GET /api/feed/twitter
-// exports.fetchTwitterPosts = async (req, res) => {
-//   const searchQuery = req.query.q || 'default';
-//   const cacheKey = `twitter:${searchQuery}`;
-//   try {
-//     const cachedData = await getCache(cacheKey);
-//     if (cachedData) {
-//       return res.json({ posts: JSON.parse(cachedData) });
-//     }
-
-//     const posts = await fetchTwitterPostsInternal(searchQuery);
-//     await setCache(cacheKey, 300, JSON.stringify(posts)); // Cache for 5 minutes
-//     res.json({ posts });
-//   } catch (err) {
-//     console.error('Error fetching Twitter posts:', err);
-//     res.status(500).json({ message: 'Failed to fetch Twitter posts' });
-//   }
-// };
-
-
 // GET /api/feed/devto
 exports.fetchDevToPosts = async (req, res) => {
   const searchQuery = req.query.q || 'javascript';
   const cacheKey = `devto:${searchQuery}`;
   try {
-    const cachedData = await getCache(cacheKey);
-    if (cachedData) {
-      return res.json({ posts: JSON.parse(cachedData) });
-    }
+   
 
     const posts = await fetchDevToPostsInternal(searchQuery);
-    await setCache(cacheKey, 300, JSON.stringify(posts)); 
+    await setCache(cacheKey, posts, 300);
+
     res.json({ posts });
   } catch (err) {
     console.error('Error fetching Dev.to posts:', err);
@@ -209,130 +179,7 @@ exports.savePost = async (req, res) => {
   }
 };
 
-// 🛠 POST /api/feed/report
-// exports.reportPost = async (req, res) => {
-//   console.log('Feed report request received with body:', req.body);
-  
-//   try {
-//     const { postId, title, url, content, source } = req.body;
-//     const user = await User.findById(req.user._id);
-//     if (!user) return res.status(404).json({ message: 'User not found' });
-    
-//     // First try to find an existing post by postId
-//     let post = null;
-//     if (postId) {
-//       try {
-//         // First try to find by postId field (not the MongoDB _id)
-//         post = await SavedPost.findOne({ postId, user: req.user._id });
-        
-//         // If not found and postId looks like a valid MongoDB ObjectId, try that too
-//         if (!post && /^[0-9a-fA-F]{24}$/.test(postId)) {
-//           post = await SavedPost.findOne({ _id: postId, user: req.user._id });
-//         }
-        
-//         console.log('Looking for post by ID:', postId, 'Found:', post ? 'Yes' : 'No');
-//       } catch (error) {
-//         console.log('Error finding post by ID (safely handled):', error.message);
-//       }
-//     }
-    
-//     // If no post found and we have details, create a new post to report
-//     if (!post && title && url) {
-//       console.log('Creating new post to report');
-//       post = new SavedPost({
-//         user: req.user._id,
-//         postId: postId || `temp-${Date.now()}`,
-//         title,
-//         url,
-//         content: content || '',
-//         source: source || 'Unknown',
-//         reported: false
-//       });
-//       await post.save();
-//       console.log('Created new post with ID:', post._id);
-//     }
-    
-//     // If still no post, try to find any unreported post
-//     if (!post) {
-//       console.log('Looking for any unreported post');
-//       post = await SavedPost.findOne({ user: req.user._id, reported: false });
-//     }
-    
-//     // If still no post, create a sample post
-//     if (!post) {
-//       console.log('Creating sample post for reporting');
-//       post = new SavedPost({
-//         user: req.user._id,
-//         postId: `sample-${Date.now()}`,
-//         title: 'Sample Post for Reporting',
-//         url: 'https://example.com/sample-post',
-//         content: 'This is a sample post created for reporting purposes',
-//         source: 'Sample',
-//         reported: false
-//       });
-//       await post.save();
-//       console.log('Created sample post with ID:', post._id);
-//     }
-    
-//     // Mark the post as reported if not already
-//     if (!post.reported) {
-//       post.reported = true;
-//       await post.save();
-//       console.log('Post marked as reported');
-      
-//       // Award credits for reporting
-//       const { awardReportPostCredits } = require('../services/creditService');
-//       const credits = await awardReportPostCredits(req.user._id);
-//       console.log('Credits awarded for reporting');
-      
-//       // Create activity log entry
-//       const ActivityLog = require('../models/ActivityLog');
-//       const activity = new ActivityLog({
-//         user: req.user._id,
-//         action: 'REPORTED_POST',
-//         postId: post._id,
-//         details: `Reported a ${post.source} post: ${post.title.substring(0, 30)}...`
-//       });
-//       await activity.save();
-//       console.log('Activity logged');
-      
-//       // Get updated counts
-//       const reportedPostsCount = await SavedPost.countDocuments({ user: req.user._id, reported: true });
-      
-//       return res.status(200).json({
-//         message: 'Post reported successfully',
-//         post: {
-//           _id: post._id,
-//           title: post.title,
-//           source: post.source,
-//           reported: true
-//         },
-//         credits: credits ? credits.totalCredits : user.credits,
-//         reportedPostsCount
-//       });
-//     } else {
-//       // Post was already reported
-//       console.log('Post was already reported by user');
-      
-//       // Get the count of reported posts for this user
-//       const reportedPostsCount = await SavedPost.countDocuments({ user: req.user._id, reported: true });
-      
-//       return res.status(200).json({
-//         message: 'You have already reported this post',
-//         post: {
-//           _id: post._id,
-//           title: post.title,
-//           source: post.source,
-//           reported: true
-//         },
-//         reportedPostsCount
-//       });
-//     }
-//   } catch (err) {
-//     console.error('Error reporting post:', err);
-//     res.status(500).json({ message: 'Server error processing report request' });
-//   }
-// };
+
 exports.reportPost = async (req, res) => {
   console.log('Feed report request received with body:', req.body);
 
