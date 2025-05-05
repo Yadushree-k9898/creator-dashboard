@@ -46,7 +46,7 @@ const FeedPage = () => {
     if (savedPosts.length === 0) {
       dispatch(fetchSavedPosts())
     }
-  }, [dispatch, activeSource]) // Keep minimal dependencies
+  }, [dispatch, activeSource]) 
   
   if (isAnyLoading) {
     return (

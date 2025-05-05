@@ -118,7 +118,6 @@
 
 // export default UserSavedPosts
 
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -131,15 +130,10 @@ import { useCredits } from "@/hooks/useCredits"
 
 const UserSavedPosts = () => {
   const { posts, loading } = useCredits()
-  const [activeTab, setActiveTab] = useState("all")
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Animation effect on mount
-    const timer = setTimeout(() => {
-      setIsVisible(true)
-    }, 200)
-
+    const timer = setTimeout(() => setIsVisible(true), 200)
     return () => clearTimeout(timer)
   }, [])
 
@@ -154,13 +148,11 @@ const UserSavedPosts = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-10 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-md"></div>
             {[...Array(3)].map((_, index) => (
               <div
                 key={index}
                 className="h-24 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-md"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              ></div>
+              />
             ))}
           </div>
         </CardContent>
@@ -181,93 +173,50 @@ const UserSavedPosts = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="all" onValueChange={setActiveTab} className="animate-fadeIn">
+        <Tabs defaultValue="all" className="animate-fadeIn">
           <TabsList className="grid w-full grid-cols-3 mb-4 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-            <TabsTrigger
-              value="all"
-              className="flex items-center data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary transition-all duration-300"
-            >
+            <TabsTrigger value="all">
               <Save className="mr-2 h-4 w-4" />
               All ({posts?.allPosts?.length || 0})
             </TabsTrigger>
-            <TabsTrigger
-              value="shared"
-              className="flex items-center data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary transition-all duration-300"
-            >
+            <TabsTrigger value="shared">
               <Share2 className="mr-2 h-4 w-4" />
               Shared ({posts?.sharedPosts?.length || 0})
             </TabsTrigger>
-            <TabsTrigger
-              value="reported"
-              className="flex items-center data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary transition-all duration-300"
-            >
+            <TabsTrigger value="reported">
               <Flag className="mr-2 h-4 w-4" />
               Reported ({posts?.reportedPosts?.length || 0})
             </TabsTrigger>
           </TabsList>
 
           <ScrollArea className="h-[350px] pr-4">
-            <TabsContent value="all" className="mt-0">
-              {posts?.allPosts && posts.allPosts.length > 0 ? (
-                posts.allPosts.map((post, index) => (
-                  <PostItem
-                    key={index}
-                    title={post.title}
-                    source={post.source}
-                    url={post.url}
-                    content={post.content}
-                    isReported={post.isReported}
-                    isShared={post.isShared}
-                    timestamp={post.createdAt}
-                  />
+            <TabsContent value="all">
+              {posts?.allPosts?.length > 0 ? (
+                posts.allPosts.map((post, i) => (
+                  <PostItem key={i} {...post} />
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400 animate-fadeIn">
-                  <Save className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                  <p>No saved posts found</p>
-                </div>
+                <EmptyState icon={<Save />} message="No saved posts found" />
               )}
             </TabsContent>
 
-            <TabsContent value="shared" className="mt-0">
-              {posts?.sharedPosts && posts.sharedPosts.length > 0 ? (
-                posts.sharedPosts.map((post, index) => (
-                  <PostItem
-                    key={index}
-                    title={post.title}
-                    source={post.source}
-                    url={post.url}
-                    content={post.content}
-                    isShared={true}
-                    timestamp={post.createdAt}
-                  />
+            <TabsContent value="shared">
+              {posts?.sharedPosts?.length > 0 ? (
+                posts.sharedPosts.map((post, i) => (
+                  <PostItem key={i} {...post} isShared />
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400 animate-fadeIn">
-                  <Share2 className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                  <p>No shared posts found</p>
-                </div>
+                <EmptyState icon={<Share2 />} message="No shared posts found" />
               )}
             </TabsContent>
 
-            <TabsContent value="reported" className="mt-0">
-              {posts?.reportedPosts && posts.reportedPosts.length > 0 ? (
-                posts.reportedPosts.map((post, index) => (
-                  <PostItem
-                    key={index}
-                    title={post.title}
-                    source={post.source}
-                    url={post.url}
-                    content={post.content}
-                    isReported={true}
-                    timestamp={post.createdAt}
-                  />
+            <TabsContent value="reported">
+              {posts?.reportedPosts?.length > 0 ? (
+                posts.reportedPosts.map((post, i) => (
+                  <PostItem key={i} {...post} isReported />
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400 animate-fadeIn">
-                  <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                  <p>No reported posts found</p>
-                </div>
+                <EmptyState icon={<Flag />} message="No reported posts found" />
               )}
             </TabsContent>
           </ScrollArea>
@@ -276,5 +225,14 @@ const UserSavedPosts = () => {
     </Card>
   )
 }
+
+const EmptyState = ({ icon, message }) => (
+  <div className="text-center py-8 text-gray-500 dark:text-gray-400 animate-fadeIn">
+    <div className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600">
+      {icon}
+    </div>
+    <p>{message}</p>
+  </div>
+)
 
 export default UserSavedPosts
