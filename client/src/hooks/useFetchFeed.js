@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { fetchRedditPosts, fetchTwitterPosts } from "../services/feedService"
+import { fetchRedditPosts, fetchDevToPosts } from "../services/feedService"
 
 export const useFetchFeed = (initialSource = "all") => {
   const [posts, setPosts] = useState([])
@@ -22,9 +22,10 @@ export const useFetchFeed = (initialSource = "all") => {
         fetchedPosts = [...fetchedPosts, ...redditPosts]
       }
 
-      if (source === "all" || source === "twitter") {
-        const twitterPosts = await fetchTwitterPosts(searchQuery)
-        fetchedPosts = [...fetchedPosts, ...twitterPosts]
+      if (source === "all" || source === "devto") {
+        const devToPosts = await fetchDevToPosts(searchQuery)
+        fetchedPosts = [...fetchedPosts, ...devToPosts]
+
       }
 
       // Sort posts by creation date (newest first)

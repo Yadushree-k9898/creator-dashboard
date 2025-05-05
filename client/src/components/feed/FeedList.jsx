@@ -1,44 +1,40 @@
-"use client"
-
-import React, { useEffect } from "react"
+import React from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchRedditFeed, fetchTwitterFeed, setActiveSource } from "../../redux/slices/feedSlice"
+import { setActiveSource, fetchDevToPosts } from "../../redux/slices/feedSlice"
 import FeedItem from "./FeedItem"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Search } from "lucide-react"
-import  Spinner  from "../common/Spinner"
-import  ErrorAlert  from "../common/ErrorAlert"
+import Spinner from "../common/Spinner"
+import ErrorAlert from "../common/ErrorAlert"
 
 const FeedList = () => {
   const dispatch = useDispatch()
-  const { allPosts, loading, error, activeSource, searchQuery } = useSelector((state) => state.feed)
-
+  const { allPosts, loading, error, activeSource } = useSelector((state) => state.feed)
   const [localSearchQuery, setLocalSearchQuery] = React.useState("")
 
-  // Fetch posts on component mount
-  useEffect(() => {
-    dispatch(fetchRedditFeed())
-    dispatch(fetchTwitterFeed(searchQuery))
-  }, [dispatch, searchQuery])
-
-  // Handle source change
+  // Handle source tab change
   const handleSourceChange = (source) => {
     dispatch(setActiveSource(source))
   }
 
-  // Handle search
+  // Handle search (for Dev.to only)
   const handleSearch = (e) => {
     e.preventDefault()
-    dispatch(fetchTwitterFeed(localSearchQuery))
+    if (activeSource === "devto") {
+      dispatch(fetchDevToPosts(localSearchQuery))
+    }
   }
 
-  // Handle refresh
+  // Handle refresh (manually triggered fetch for active source)
   const handleRefresh = () => {
-    dispatch(fetchRedditFeed())
-    dispatch(fetchTwitterFeed(searchQuery))
+    if (activeSource === "reddit") {
+      dispatch(fetchRedditFeed())
+    } else if (activeSource === "devto") {
+      dispatch(fetchDevToPosts(localSearchQuery))
+    }
   }
 
   return (
@@ -60,18 +56,22 @@ const FeedList = () => {
               <TabsList>
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="reddit">Reddit</TabsTrigger>
-                <TabsTrigger value="twitter">Twitter</TabsTrigger>
+                <TabsTrigger value="devto">Dev.to</TabsTrigger>
               </TabsList>
 
               <form onSubmit={handleSearch} className="flex w-full md:w-auto">
                 <Input
-                  placeholder="Search Twitter..."
+                  placeholder="Search Dev.to..."
                   value={localSearchQuery}
                   onChange={(e) => setLocalSearchQuery(e.target.value)}
                   className="mr-2"
-                  disabled={activeSource === "reddit"}
+                  disabled={activeSource !== "devto"}
                 />
-                <Button type="submit" variant="secondary" disabled={activeSource === "reddit" || loading}>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  disabled={activeSource !== "devto" || loading}
+                >
                   <Search className="h-4 w-4" />
                 </Button>
               </form>
@@ -87,7 +87,9 @@ const FeedList = () => {
               <>
                 <TabsContent value="all" className="m-0">
                   {allPosts.length > 0 ? (
-                    allPosts.map((post) => <FeedItem key={`${post.source}-${post.postId}`} post={post} />)
+                    allPosts.map((post) => (
+                      <FeedItem key={`${post.source}-${post.postId}`} post={post} />
+                    ))
                   ) : (
                     <p className="text-center py-8 text-gray-500">No posts found</p>
                   )}
@@ -97,19 +99,23 @@ const FeedList = () => {
                   {allPosts.filter((post) => post.source === "Reddit").length > 0 ? (
                     allPosts
                       .filter((post) => post.source === "Reddit")
-                      .map((post) => <FeedItem key={`${post.source}-${post.postId}`} post={post} />)
+                      .map((post) => (
+                        <FeedItem key={`${post.source}-${post.postId}`} post={post} />
+                      ))
                   ) : (
                     <p className="text-center py-8 text-gray-500">No Reddit posts found</p>
                   )}
                 </TabsContent>
 
-                <TabsContent value="twitter" className="m-0">
-                  {allPosts.filter((post) => post.source === "Twitter").length > 0 ? (
+                <TabsContent value="devto" className="m-0">
+                  {allPosts.filter((post) => post.source === "Dev.to").length > 0 ? (
                     allPosts
-                      .filter((post) => post.source === "Twitter")
-                      .map((post) => <FeedItem key={`${post.source}-${post.postId}`} post={post} />)
+                      .filter((post) => post.source === "Dev.to")
+                      .map((post) => (
+                        <FeedItem key={`${post.source}-${post.postId}`} post={post} />
+                      ))
                   ) : (
-                    <p className="text-center py-8 text-gray-500">No Twitter posts found</p>
+                    <p className="text-center py-8 text-gray-500">No Dev.to posts found</p>
                   )}
                 </TabsContent>
               </>

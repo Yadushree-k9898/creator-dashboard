@@ -1,55 +1,96 @@
-"use client"
-
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { fetchRedditFeed, fetchTwitterFeed, fetchSavedPosts } from "../../redux/slices/feedSlice"
+import {
+  fetchDevToPosts,
+  fetchRedditFeed,
+  fetchSavedPosts,
+} from "../../redux/slices/feedSlice"
 import FeedList from "../../components/feed/FeedList"
 import SectionTitle from "../../components/common/SectionTitle"
+import Spinner from "../../components/common/Spinner"
+import ErrorAlert from "../../components/common/ErrorAlert"
 
 const FeedPage = () => {
   const dispatch = useDispatch()
-  const feed = useSelector((state) => state.feed)
-  const loading = feed?.loading
-  const error = feed?.error
+  const {
+    allPosts,
+    redditPosts,
+    devtoPosts,
+    savedPosts,
+    redditLoading,
+    devtoLoading,
+    savedPostsLoading,
+    redditError,
+    devtoError,
+    savedPostsError,
+    activeSource,
+    searchQuery,
+  } = useSelector((state) => state.feed)
+
+  const isAnyLoading = redditLoading || devtoLoading || savedPostsLoading
+  const anyError = redditError || devtoError || savedPostsError
+
+  // useEffect(() => {
+  //   if (activeSource === "reddit" && !redditPosts.length && !redditLoading) {
+  //     dispatch(fetchRedditFeed())
+  //   } else if (activeSource === "devto" && !devtoPosts.length && !devtoLoading) {
+  //     dispatch(fetchDevToPosts(searchQuery))
+  //   } else if (activeSource === "all") {
+  //     if (!redditPosts.length && !redditLoading) {
+  //       dispatch(fetchRedditFeed())
+  //     }
+  //     if (!devtoPosts.length && !devtoLoading) {
+  //       dispatch(fetchDevToPosts(searchQuery))
+  //     }
+  //   }
+
+  //   if (!savedPosts.length && !savedPostsLoading) {
+  //     dispatch(fetchSavedPosts())
+  //   }
+  // }, [dispatch, activeSource, redditPosts.length, devtoPosts.length, savedPosts.length, redditLoading, devtoLoading, savedPostsLoading, searchQuery])
+
 
   useEffect(() => {
-   
-    dispatch(fetchRedditFeed())
-    dispatch(fetchTwitterFeed())
-    dispatch(fetchSavedPosts())
-  }, [dispatch])
-
-  if (loading) {
+    if (activeSource === "reddit" && redditPosts.length === 0) {
+      dispatch(fetchRedditFeed())
+    } else if (activeSource === "devto" && devtoPosts.length === 0) {
+      dispatch(fetchDevToPosts())
+    } else if (activeSource === "all") {
+      if (redditPosts.length === 0) {
+        dispatch(fetchRedditFeed())
+      }
+      if (devtoPosts.length === 0) {
+        dispatch(fetchDevToPosts())
+      }
+    }
+  
+    if (savedPosts.length === 0) {
+      dispatch(fetchSavedPosts())
+    }
+  }, [dispatch, activeSource]) // Keep minimal dependencies
+  
+  if (isAnyLoading) {
     return (
-      <>
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-        </div>
-      </>
+      <div className="flex items-center justify-center h-screen">
+        <Spinner />
+      </div>
     )
   }
 
-  if (error) {
-    return (
-      <>
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 m-4 rounded">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-        </div>
-      </>
-    )
+  if (anyError) {
+    return <ErrorAlert message={anyError} />
   }
 
   return (
-   
-      <div className="container mx-auto px-4 py-6">
-        <SectionTitle title="Content Feed" subtitle="Discover and interact with content from various platforms" />
-
-        <div className="mt-6">
-          <FeedList />
-        </div>
+    <div className="container mx-auto px-4 py-6">
+      <SectionTitle
+        title="Content Feed"
+        subtitle="Discover and interact with content from various platforms"
+      />
+      <div className="mt-6">
+        <FeedList />
       </div>
-    
+    </div>
   )
 }
 
