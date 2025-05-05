@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useUserRole } from "../hooks/useUserRole";
 
 // Layout
-import { Layout } from "../components/layout/Layout";
+import Layout  from "../components/layout/Layout";
 
 // Auth Pages
 import Login from "../pages/Auth/Login";
