@@ -1,13 +1,3 @@
-// const allowRoles = (...roles) => {
-//     return (req, res, next) => {
-      
-//       if (!roles.includes(req.user.role)) {
-//         console.log(req.user.role, roles);
-//         return res.status(403).json({ message: 'Access denied, insufficient role' });
-//       }
-//       next();
-//     };
-//   };
 
 const allowRoles = (...roles) => {
   return (req, res, next) => {
