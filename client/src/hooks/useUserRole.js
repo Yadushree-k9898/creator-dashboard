@@ -1,22 +1,23 @@
-// src/hooks/useUserRole.js
+import { useSelector } from "react-redux"
 
-import { useEffect, useState } from "react";
-import { USER_KEY } from "../utils/constants"; // Import constants where you store user data in localStorage
+/**
+ * Custom hook to check user roles
+ * @returns {Object} Object containing role check functions
+ */
+export const useUserRole = () => {
+  const { user } = useSelector((state) => state.auth)
 
-const useUserRole = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Check if user is admin - case insensitive comparison
+  const isAdmin = user?.role?.toLowerCase() === "admin"
 
-  useEffect(() => {
-    // Check if user data exists in localStorage or context
-    const user = JSON.parse(localStorage.getItem(USER_KEY));
+  // Check if user is a regular user - case insensitive comparison
+  const isUser = user?.role?.toLowerCase() === "user"
 
-    // If user exists and role is 'admin', set isAdmin to true
-    if (user && user.role === 'admin') {
-      setIsAdmin(true);
-    }
-  }, []);
+  // Check if user has a specific role
+  const hasRole = (role) => {
+    if (!user || !user.role) return false
+    return user.role.toLowerCase() === role.toLowerCase()
+  }
 
-  return { isAdmin };
-};
-
-export { useUserRole };
+  return { isAdmin, isUser, hasRole }
+}

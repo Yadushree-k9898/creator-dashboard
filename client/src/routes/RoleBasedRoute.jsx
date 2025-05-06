@@ -1,20 +1,27 @@
+import { Navigate, Outlet, useLocation } from "react-router-dom"
 
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-
-const RoleBasedRoute = ({ isAuthenticated, isAuthorized, redirectPath }) => {
+/**
+ * A wrapper component for routes that require specific role authorization
+ * @param {boolean} isAuthenticated - Whether the user is authenticated
+ * @param {boolean} isAuthorized - Whether the user has the required role
+ * @param {string} redirectPath - Path to redirect to if not authorized
+ * @returns {JSX.Element} The protected route or redirect
+ */
+const RoleBasedRoute = ({ isAuthenticated, isAuthorized, redirectPath = "/dashboard/user", children }) => {
+  const location = useLocation()
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" />;
+    // Redirect to login page with return URL if not authenticated
+    return <Navigate to="/auth/login" state={{ from: location.pathname }} replace />
   }
 
-  // If the user is not authorized for the route, redirect to the specified path
   if (!isAuthorized) {
-    return <Navigate to={redirectPath} />;
+    // Redirect to specified path if authenticated but not authorized
+    return <Navigate to={redirectPath} replace />
   }
 
-  // If the user is authenticated and authorized, render the nested routes
-  return <Outlet />;
-};
+  // If there are children, render them, otherwise render the outlet
+  return children ? children : <Outlet />
+}
 
-export { RoleBasedRoute };  
+export default RoleBasedRoute
