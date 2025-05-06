@@ -34,7 +34,7 @@ const AdminDashboard = () => {
       dispatch(fetchAdminDashboard()),
       dispatch(fetchAllUsers({ page: pagination.currentPage, limit: pagination.limit })),
     ]).finally(() => {
-      setTimeout(() => setIsRefreshing(false), 600) // Add a slight delay for better UX
+      setTimeout(() => setIsRefreshing(false), 600) 
     })
   }
 
@@ -44,12 +44,12 @@ const AdminDashboard = () => {
   }
 
   const handleEditUser = (user) => {
-    // Navigate to edit user page or open modal
+    
     console.log("Edit user:", user)
   }
 
   const handleDeleteUser = (user) => {
-    // Open confirmation dialog and delete user
+    
     console.log("Delete user:", user)
   }
 

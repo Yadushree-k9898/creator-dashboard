@@ -1,8 +1,7 @@
-const { redisClient, getCache, setCache } = require('../utils/redisClient'); // Assuming you have a utils folder for Redis connection
+const { redisClient, getCache, setCache } = require('../utils/redisClient');
 
-// Simulate fetching Reddit posts (Update this to use Reddit's actual API if needed)
 exports.fetchRedditPosts = async () => {
-  const cacheKey = 'reddit:popular'; // Cache key to store posts in Redis
+  const cacheKey = 'reddit:popular'; 
 
   try {
     // Check Redis cache first
@@ -12,7 +11,7 @@ exports.fetchRedditPosts = async () => {
       return cachedData; // Return cached data if available
     }
 
-    // If no cache, simulate fetching Reddit posts (replace with actual API calls if required)
+   
     const posts = [
       {
         id: 'reddit1',

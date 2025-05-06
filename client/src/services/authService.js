@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth'; // Change to match your backend
+const API_URL = 'http://localhost:5000/api/auth'; 
 
 // Register a new user
 export const register = async (userData) => {
-  // Ensure the role is correct, either 'User' or 'Admin'
+  // Ensure the role is correct, either 'User' or 'admin'
   userData.role = userData.role.charAt(0).toUpperCase() + userData.role.slice(1); // Capitalize first letter
 
   const response = await axios.post(`${API_URL}/register`, userData);

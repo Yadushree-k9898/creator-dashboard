@@ -1,20 +1,49 @@
+// const jwt = require('jsonwebtoken');
+
+// // Function to generate JWT token
+// const generateToken = (user) => {
+//   // Ensure that the user object has the required properties
+//   if (!user || !user._id || !user.role) {
+//     throw new Error("User data is incomplete for token generation. Ensure the user object has '_id' and 'role' properties.");
+//   }
+
+//   // Generate token with role and id
+//   const token = jwt.sign(
+//     { id: user._id, role: user.role },
+//     process.env.JWT_SECRET, // Ensure this is set in environment variables
+//     { expiresIn: '7d' } // Token expires in 7 days, adjust if necessary
+//   );
+
+//   return token;
+// };
+
+// module.exports = { generateToken };
+
+
 const jwt = require('jsonwebtoken');
 
-// Function to generate JWT token
-const generateToken = (user) => {
+// Function to generate JWT tokens (Access Token and Refresh Token)
+const generateTokens = (user) => {
   // Ensure that the user object has the required properties
   if (!user || !user._id || !user.role) {
-    throw new Error("User data is incomplete for token generation.");
+    throw new Error("User data is incomplete for token generation. Ensure the user object has '_id' and 'role' properties.");
   }
 
-  // Generate token
-  const token = jwt.sign(
+  // Generate access token with role and id (short-lived)
+  const accessToken = jwt.sign(
     { id: user._id, role: user.role },
-    process.env.JWT_SECRET, // Use JWT_SECRET from environment variables
-    { expiresIn: '7d' } // Token expires in 7 days
+    process.env.JWT_SECRET, // Ensure this is set in environment variables
+    { expiresIn: '1h' } // Token expires in 1 hour, adjust if necessary
   );
 
-  return token;
+  // Generate refresh token (long-lived)
+  const refreshToken = jwt.sign(
+    { id: user._id }, // Only include the user ID in the refresh token
+    process.env.REFRESH_TOKEN_SECRET, // Ensure you have a separate secret for the refresh token
+    { expiresIn: '7d' } // Token expires in 7 days, adjust if necessary
+  );
+
+  return { accessToken, refreshToken };
 };
 
-module.exports = { generateToken };
+module.exports = { generateTokens };

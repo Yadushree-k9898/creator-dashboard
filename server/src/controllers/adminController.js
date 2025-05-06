@@ -53,9 +53,10 @@ exports.getUserById = async (req, res) => {
 exports.updateUserRole = async (req, res) => {
   const { userId, role } = req.body;
 
-  if (role !== 'Admin' && role !== 'User') {
-    return res.status(400).json({ message: 'Invalid role' });
-  }
+  // if (role !== 'admin' && role !== 'user') {
+  //   return res.status(400).json({ message: 'Invalid role' });
+  // }
+  
 
   try {
     const user = await User.findById(userId);
@@ -63,7 +64,7 @@ exports.updateUserRole = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (userId === req.user.id && role === 'Admin') {
+    if (userId === req.user.id && role === 'admin') {
       return res.status(403).json({ message: 'You cannot promote yourself to Admin' });
     }
 
@@ -118,8 +119,8 @@ exports.getAdminDashboard = async (req, res) => {
 
         // User statistics
         const totalUsers = await User.countDocuments();
-        const totalAdmins = await User.countDocuments({ role: 'Admin' });
-        const totalCreators = await User.countDocuments({ role: 'User' });
+        const totalAdmins = await User.countDocuments({ role: 'admin' });
+        const totalCreators = await User.countDocuments({ role: 'user' });
         
         const lastWeekDate = new Date();
         lastWeekDate.setDate(lastWeekDate.getDate() - 7);
