@@ -157,7 +157,7 @@ const SavedFeeds = ({ feedStats }) => {
                 <TrendingUp className="h-4 w-4 mr-2 text-primary" />
                 Source Distribution
               </h4>
-              <ScrollArea className="h-40">
+              {/* <ScrollArea className="h-40">
                 <div className="space-y-2">
                   {sourceData.map((item, idx) => (
                     <div
@@ -169,7 +169,25 @@ const SavedFeeds = ({ feedStats }) => {
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </ScrollArea> */}
+              <ScrollArea className="h-full max-h-40 overflow-auto">
+  <div className="space-y-2">
+    {sourceData.map((item, idx) => (
+      <div
+        key={idx}
+        className="flex justify-between items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+      >
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          {item.name}
+        </span>
+        <span className="text-sm font-medium text-primary">
+          {item.value.toLocaleString()} posts
+        </span>
+      </div>
+    ))}
+  </div>
+</ScrollArea>
+
             </div>
           </TabsContent>
 
