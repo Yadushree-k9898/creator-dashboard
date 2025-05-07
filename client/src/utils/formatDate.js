@@ -1,4 +1,3 @@
-
 /**
  * Format a date to a readable string
  * @param {Date|string|number} date - The date to format
@@ -94,15 +93,6 @@ export const formatRelativeTime = (date) => {
 };
 
 /**
-* Format a date as time ago (e.g., "2 hours ago")
-* @param {Date} date - The date to format
-* @returns {string} Time ago string
-*/
-export const formatTimeAgo = (date) => {
-  return formatRelativeTime(date); // If it's the same logic as "relative" time
-};
-
-/**
 * Format a date range
 * @param {Date|string|number} startDate - The start date
 * @param {Date|string|number} endDate - The end date
@@ -124,5 +114,3 @@ export const formatDateRange = (startDate, endDate) => {
   // Different days
   return `${formatDate(start)} - ${formatDate(end)}`;
 };
-
-  

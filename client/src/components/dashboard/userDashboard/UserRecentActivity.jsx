@@ -5,7 +5,7 @@ import { Clock, Save, Share2, Flag, User, LogIn } from "lucide-react";
 import { ActivityItem } from "./StatComponents";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserActivityLogs } from "@/redux/slices/userSlice";
-import { formatTimeAgo } from "../../../utils/formatDate"; 
+import { formatDate } from "../../../utils/formatDate"; 
 
 const UserRecentActivity = () => {
   const dispatch = useDispatch();
@@ -26,17 +26,18 @@ const UserRecentActivity = () => {
   }, [dispatch]);
 
   const getActivityIcon = (action) => {
-    const trimmedAction = action.trim();
+    const trimmedAction = action.trim().toUpperCase();  // Convert to uppercase for consistency
+  
     switch (trimmedAction) {
-      case "Logged in":
+      case "LOGIN":
         return <LogIn className="h-4 w-4" />;
-      case "Completed profile":
+      case "PROFILE_COMPLETION":
         return <User className="h-4 w-4" />;
-      case "Saved a post":
+      case "SAVED_POST":
         return <Save className="h-4 w-4" />;
-      case "Shared a post":
+      case "SHARED_POST":
         return <Share2 className="h-4 w-4" />;
-      case "Reported a post":
+      case "REPORTED_POST":
         return <Flag className="h-4 w-4" />;
       default:
         return <Clock className="h-4 w-4" />;
@@ -74,12 +75,9 @@ const UserRecentActivity = () => {
             <div className="space-y-2 animate-fadeIn">
               {recentActivity && recentActivity.length > 0 ? (
                 recentActivity.map((activity, index) => {
-                  // Log the activity createdAt to check its value
-                  console.log("Activity Date:", activity.createdAt);
-
                   // Ensure the date is valid
                   const timestamp = new Date(activity.createdAt);
-                  const formattedTimestamp = isNaN(timestamp.getTime()) ? "Invalid date" : formatTimeAgo(timestamp);
+                  const formattedTimestamp = !isNaN(timestamp.getTime()) ? formatDate(timestamp) : "Invalid date";
 
                   return (
                     <ActivityItem
