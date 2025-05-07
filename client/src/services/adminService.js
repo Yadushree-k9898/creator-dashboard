@@ -135,8 +135,7 @@
 
 import API from "./axiosInstance";
 
-const API_URL = "/api/admin"; // baseURL is already set in axiosInstance
-
+const API_URL = "/api/admin"; 
 export const getAllUsers = async (page = 1, limit = 10) => {
   try {
     const response = await API.get(`${API_URL}/users?page=${page}&limit=${limit}`);
