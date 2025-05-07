@@ -29,7 +29,8 @@ const {
   getUserById,
   updateUserRole,
   updateUserCredits,
-  getAdminDashboard
+  getAdminDashboard,
+  getActivityLogs
 } = require('../controllers/adminController');
 
 // All admin routes need a valid JWT first, then an admin role
@@ -63,9 +64,16 @@ router.put(
 
 router.get(
   '/dashboard',
-  protect,                // **must** protect first
+  protect,               
   allowRoles('admin'),
   getAdminDashboard
+);
+
+router.get(
+  '/activity-logs',
+  protect,
+  allowRoles('admin'),
+  getActivityLogs
 );
 
 module.exports = router;

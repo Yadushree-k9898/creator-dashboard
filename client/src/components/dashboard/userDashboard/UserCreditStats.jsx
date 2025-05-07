@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Coins, Award, Calendar, Users } from "lucide-react"
 import { StatCard, ProgressBar } from "./StatComponents"
-import userService from "@/services/userService" // adjust this import path as needed
+import userService from "@/services/userService" 
 
 const UserCreditStats = () => {
   const [dashboardData, setDashboardData] = useState(null)

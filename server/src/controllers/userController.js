@@ -3,8 +3,8 @@ const User = require('../models/User');
 const SavedPost = require('../models/SavedPost');
 const Credits = require('../models/Credits');
 const ActivityLog = require('../models/ActivityLog');
-const { generateToken } = require('../utils/tokenUtils');
-const { getCache, setCache , deleteCache} = require('../config/redisClient');
+const { generateTokens } = require('../utils/tokenUtils');
+const { getCache, setCache , deleteCache, redisClient} = require('../config/redisClient');
 
 
 const { 
@@ -14,7 +14,7 @@ const {
   awardReportPostCredits,
   awardSharePostCredits
 } = require('../services/creditService');
-const redisClient = require('../utils/redisClient'); // Import the Redis client
+
 
 // @desc    Get current user's profile
 // @route   GET /api/users/profile
@@ -131,7 +131,7 @@ exports.updateProfile = async (req, res, next) => {
     res.status(200).json({
       message: 'Profile updated successfully',
       user: updatedUserProfile,
-      token: generateToken(updatedUser),
+      token: generateTokens(updatedUser),
     });
   } catch (err) {
     next(err);
@@ -226,18 +226,52 @@ exports.savePost = async (req, res, next) => {
 // @desc    Get user's activity log
 // @route   GET /api/users/activity-log
 // @access  Private (User)
+// exports.getActivityLog = async (req, res, next) => {
+//   try {
+//     const userId = req.user._id;
+
+//     // Check Redis cache for activity logs before continuing
+//     const cachedActivityLogs = await redisClient.get(`activityLogs:${userId}`);
+//     if (cachedActivityLogs) {
+//       // If activity logs are cached, return them from Redis
+//       return res.status(200).json(JSON.parse(cachedActivityLogs));
+//     }
+
+//     // Fetch the user from the database
+//     const user = await User.findById(userId);
+//     if (!user) return res.status(404).json({ message: 'User not found' });
+
+//     // Retrieve the user's activity logs from the database
+//     const activityLogs = await ActivityLog.find({ user: user._id })
+//       .sort({ timestamp: -1 }); // Sort by most recent activity
+
+//     // Cache the fetched activity logs in Redis for 1 hour
+//     await redisClient.setex(`activityLogs:${userId}`, 3600, JSON.stringify(activityLogs));
+
+//     res.status(200).json(activityLogs);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+
+
+
+
 exports.getActivityLog = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
     // Check Redis cache for activity logs before continuing
     const cachedActivityLogs = await redisClient.get(`activityLogs:${userId}`);
+    
     if (cachedActivityLogs) {
       // If activity logs are cached, return them from Redis
+      console.log('Cache hit for activity logs');
       return res.status(200).json(JSON.parse(cachedActivityLogs));
     }
 
-    // Fetch the user from the database
+    // If not cached, fetch from the database
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -245,11 +279,17 @@ exports.getActivityLog = async (req, res, next) => {
     const activityLogs = await ActivityLog.find({ user: user._id })
       .sort({ timestamp: -1 }); // Sort by most recent activity
 
-    // Cache the fetched activity logs in Redis for 1 hour
+    if (!activityLogs.length) {
+      return res.status(200).json([]); // If no logs, return an empty array
+    }
+
+    // Cache the fetched activity logs in Redis for 1 hour (3600 seconds)
     await redisClient.setex(`activityLogs:${userId}`, 3600, JSON.stringify(activityLogs));
 
+    // Return the activity logs to the client
     res.status(200).json(activityLogs);
   } catch (err) {
+    console.error('Error in getActivityLog:', err);
     next(err);
   }
 };

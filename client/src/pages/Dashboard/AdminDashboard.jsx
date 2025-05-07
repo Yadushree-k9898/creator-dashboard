@@ -12,7 +12,7 @@ import SavedFeeds from "../../components/dashboard/adminDashboard/SavedFeeds"
 import AdminUserTable from "../../components/users/AdminUserTable"
 import UserDetailView from "../../components/users/UserDetailView"
 import UserCreditManager from "../../components/users/UserCreditManager"
-import { LayoutDashboard, Users, Activity, Settings, RefreshCw } from "lucide-react"
+import { LayoutDashboard, Users, Activity, RefreshCw, ChevronRight } from "lucide-react"
 
 const AdminDashboard = () => {
   const dispatch = useDispatch()
@@ -44,12 +44,10 @@ const AdminDashboard = () => {
   }
 
   const handleEditUser = (user) => {
-    
     console.log("Edit user:", user)
   }
 
   const handleDeleteUser = (user) => {
-    
     console.log("Delete user:", user)
   }
 
@@ -63,118 +61,98 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 animate-fadeIn">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-4 md:p-6 space-y-6 animate-fadeIn max-w-screen-2xl mx-auto">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your platform and monitor key metrics</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center">
+            <span className="bg-violet-100 dark:bg-violet-900/40 p-2 rounded-lg mr-3">
+              <LayoutDashboard className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+            </span>
+            Admin Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1 flex items-center text-sm">
+            <ChevronRight className="h-3 w-3 mr-1 text-violet-500" />
+            Manage your platform and monitor key metrics
+          </p>
         </div>
-        <Button
-          onClick={handleRefreshData}
-          variant="outline"
-          className="flex items-center gap-2 transition-all duration-300 hover:bg-primary/10"
+        <Button 
+          onClick={handleRefreshData} 
+          variant="outline" 
+          className="flex items-center gap-2 border-violet-200 hover:border-violet-300 hover:bg-violet-50 dark:border-violet-800 dark:hover:border-violet-700 dark:hover:bg-violet-900/20" 
           disabled={isRefreshing}
         >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-4 w-4 text-violet-600 dark:text-violet-400 ${isRefreshing ? "animate-spin" : ""}`} />
           {isRefreshing ? "Refreshing..." : "Refresh Data"}
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-muted/50 p-1 rounded-lg">
-          <TabsTrigger
-            value="overview"
-            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger
-            value="users"
-            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300"
-          >
-            <Users className="h-4 w-4" />
-            Users
-          </TabsTrigger>
-          <TabsTrigger
-            value="activity"
-            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300"
-          >
-            <Activity className="h-4 w-4" />
-            Activity
-          </TabsTrigger>
-          <TabsTrigger
-            value="settings"
-            className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300"
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </TabsTrigger>
-        </TabsList>
+        <div className="bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+          <TabsList className="bg-gray-100 dark:bg-gray-700/50 p-1 rounded-lg w-full md:w-auto grid grid-cols-3 md:flex">
+            <TabsTrigger 
+              value="overview" 
+              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-violet-600 dark:data-[state=active]:text-violet-400 data-[state=active]:shadow-sm"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="users" 
+              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-violet-600 dark:data-[state=active]:text-violet-400 data-[state=active]:shadow-sm"
+            >
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger 
+              value="activity" 
+              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-violet-600 dark:data-[state=active]:text-violet-400 data-[state=active]:shadow-sm"
+            >
+              <Activity className="h-4 w-4" />
+              Activity
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="overview" className="space-y-6 animate-fadeIn">
-          {/* Credit Stats Summary */}
+        <TabsContent value="overview" className="space-y-6 mt-6">
           <CreditStatsCard creditStats={dashboard?.creditStats} />
-
-          <Separator className="my-6" />
-
-          {/* Analytics */}
+          <Separator className="my-6 bg-gray-200 dark:bg-gray-700" />
           <AdminAnalytics dashboard={dashboard} />
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activity */}
-            <RecentActivity activities={dashboard?.recentActivity} />
-
-            {/* Saved Feeds */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <RecentActivity />
             <SavedFeeds feedStats={dashboard?.feedStats} />
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-6 animate-fadeIn">
-          <AdminUserTable
-            users={users || []}
-            pagination={pagination}
-            onPageChange={handlePageChange}
-            onViewUser={handleViewUser}
-            onEditUser={handleEditUser}
-            onDeleteUser={handleDeleteUser}
-            onManageCredits={handleManageCredits}
-            isLoading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-6 animate-fadeIn">
-          <Card className="shadow-md overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-primary/80 to-primary text-white">
-              <CardTitle>Recent Platform Activity</CardTitle>
+        <TabsContent value="users" className="mt-6">
+          <Card className="border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 py-4 px-6 border-b border-gray-200 dark:border-gray-700">
+              <CardTitle className="flex items-center text-lg font-semibold text-gray-900 dark:text-white">
+                <Users className="mr-3 h-5 w-5 text-violet-600 dark:text-violet-400" />
+                Platform Users
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <RecentActivity activities={dashboard?.recentActivity} fullHeight />
+              <AdminUserTable 
+                users={users || []} 
+                pagination={pagination} 
+                onPageChange={handlePageChange} 
+                onViewUser={handleViewUser} 
+                onEditUser={handleEditUser} 
+                onDeleteUser={handleDeleteUser} 
+                onManageCredits={handleManageCredits} 
+                isLoading={loading} 
+              />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-6 animate-fadeIn">
-          <Card className="shadow-md">
-            <CardHeader className="bg-gradient-to-r from-primary/80 to-primary text-white">
-              <CardTitle>Platform Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground">Platform settings will be available here.</p>
-            </CardContent>
-          </Card>
+        <TabsContent value="activity" className="mt-6">
+          <RecentActivity fullHeight />
         </TabsContent>
       </Tabs>
 
-      {/* User Detail Modal */}
       <UserDetailView user={selectedUser} isOpen={isUserDetailOpen} onClose={() => setIsUserDetailOpen(false)} />
-
-      {/* Credit Manager Modal */}
-      <UserCreditManager
-        user={selectedUser}
-        isOpen={isCreditManagerOpen}
-        onClose={() => setIsCreditManagerOpen(false)}
-      />
+      <UserCreditManager user={selectedUser} isOpen={isCreditManagerOpen} onClose={() => setIsCreditManagerOpen(false)} />
     </div>
   )
 }
