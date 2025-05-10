@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const API = 'http://localhost:5000/api/users';
 
 const axiosInstance = axios.create({
@@ -12,32 +13,29 @@ const axiosInstance = axios.create({
 // Add request timeout to prevent hanging requests
 axiosInstance.defaults.timeout = 10000; // 10 seconds timeout
 
-// Add request interceptor to attach auth token
+
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const tokenString = localStorage.getItem('auth_token');
+    console.log('Auth token string:', tokenString); // 👀
+
+    if (tokenString) {
+      try {
+        const tokenObj = JSON.parse(tokenString);
+        console.log('Parsed token object:', tokenObj); // 👀
+        if (tokenObj.accessToken) {
+          config.headers.Authorization = `Bearer ${tokenObj.accessToken}`;
+          console.log('Set Authorization:', config.headers.Authorization); // 👀
+        }
+      } catch (err) {
+        console.error('Error parsing auth token:', err);
+      }
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Add response interceptor for better error handling
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle token expiration
-    if (error.response && error.response.status === 401) {
-      // Clear invalid token
-      localStorage.removeItem('token');
-      // Redirect to login if needed
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 // Dashboard API - get all user dashboard data
 const getDashboard = async () => {
