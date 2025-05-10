@@ -6,7 +6,7 @@ import { Share2, Bookmark, Flag, ExternalLink } from "lucide-react"
 import { useDispatch, useSelector } from "react-redux"
 import {
   savePostToFeed,
-  reportPostFromFeed,
+  reportPostFromFeedReducer,
   sharePostFromFeed,
 } from "../../redux/slices/feedSlice"
 import { ReportModal } from "./ReportModal"
@@ -59,7 +59,7 @@ const FeedItem = ({ post }) => {
 
   const handleConfirmReport = (reason) => {
     dispatch(
-      reportPostFromFeed({
+      reportPostFromFeedReducer({
         postId: post.postId,
         title: post.title,
         url: post.url,

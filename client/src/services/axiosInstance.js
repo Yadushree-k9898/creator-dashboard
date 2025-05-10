@@ -1,5 +1,3 @@
-
-
 import axios from "axios";
 
 const API = axios.create({
@@ -9,7 +7,8 @@ const API = axios.create({
 // Attach token to every request
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
+    const tokenData = JSON.parse(localStorage.getItem("auth_token"));
+    const token = tokenData?.accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`; // Attach the token to request headers
     }

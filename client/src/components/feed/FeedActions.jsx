@@ -9,103 +9,185 @@ const FeedActions = ({ post, isSaved, isReported, isShared }) => {
   const dispatch = useDispatch()
 
   // Handle save post
-  const handleSave = () => {
-    if (!isSaved) {
-      dispatch(
+  // const handleSave = () => {
+  //   if (!isSaved) {
+  //     dispatch(
+  //       savePostToFeed({
+  //         postId: post.postId,
+  //         title: post.title,
+  //         url: post.url,
+  //         content: post.content,
+  //         source: post.source,
+  //       }),
+  //     )
+  //       .unwrap()
+  //       .then(() => {
+  //         toast({
+  //           title: "Post saved",
+  //           description: "Post has been saved to your collection",
+  //         })
+  //       })
+  //       .catch((error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error || "Failed to save post",
+  //           variant: "destructive",
+  //         })
+  //       })
+  //   }
+  // }
+
+  // // Handle report post
+  // const handleReport = () => {
+  //   if (!isReported) {
+  //     dispatch(
+  //       reportPostFromFeed({
+  //         postId: post.postId,
+  //         title: post.title,
+  //         url: post.url,
+  //         content: post.content,
+  //         source: post.source,
+  //       }),
+  //     )
+  //       .unwrap()
+  //       .then(() => {
+  //         toast({
+  //           title: "Post reported",
+  //           description: "Thank you for reporting this post",
+  //         })
+  //       })
+  //       .catch((error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error || "Failed to report post",
+  //           variant: "destructive",
+  //         })
+  //       })
+  //   }
+  // }
+
+  // // Handle share post
+  // const handleShare = () => {
+  //   if (!isShared) {
+  //     dispatch(
+  //       sharePostFromFeed({
+  //         postId: post.postId,
+  //         title: post.title,
+  //         url: post.url,
+  //         content: post.content,
+  //         source: post.source,
+  //       }),
+  //     )
+  //       .unwrap()
+  //       .then(() => {
+  //         // Copy the URL to clipboard
+  //         navigator.clipboard
+  //           .writeText(post.url)
+  //           .then(() => {
+  //             toast({
+  //               title: "Link copied",
+  //               description: "Post link has been copied to clipboard",
+  //             })
+  //           })
+  //           .catch(() => {
+  //             toast({
+  //               title: "Copy failed",
+  //               description: "Could not copy link to clipboard",
+  //               variant: "destructive",
+  //             })
+  //           })
+  //       })
+  //       .catch((error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error || "Failed to share post",
+  //           variant: "destructive",
+  //         })
+  //       })
+  //   }
+  // }
+
+  // Handle save post
+const handleSave = async () => {
+  if (!isSaved) {
+    try {
+      await dispatch(
         savePostToFeed({
           postId: post.postId,
           title: post.title,
           url: post.url,
           content: post.content,
           source: post.source,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          toast({
-            title: "Post saved",
-            description: "Post has been saved to your collection",
-          })
         })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error || "Failed to save post",
-            variant: "destructive",
-          })
-        })
+      ).unwrap();
+      toast({
+        title: "Post saved",
+        description: "Post has been saved to your collection",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save post",
+        variant: "destructive",
+      });
     }
   }
+};
 
-  // Handle report post
-  const handleReport = () => {
-    if (!isReported) {
-      dispatch(
+// Handle report post
+const handleReport = async () => {
+  if (!isReported) {
+    try {
+      await dispatch(
         reportPostFromFeed({
           postId: post.postId,
           title: post.title,
           url: post.url,
           content: post.content,
           source: post.source,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          toast({
-            title: "Post reported",
-            description: "Thank you for reporting this post",
-          })
         })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error || "Failed to report post",
-            variant: "destructive",
-          })
-        })
+      ).unwrap();
+      toast({
+        title: "Post reported",
+        description: "Thank you for reporting this post",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to report post",
+        variant: "destructive",
+      });
     }
   }
+};
 
-  // Handle share post
-  const handleShare = () => {
-    if (!isShared) {
-      dispatch(
+// Handle share post
+const handleShare = async () => {
+  if (!isShared) {
+    try {
+      await dispatch(
         sharePostFromFeed({
           postId: post.postId,
           title: post.title,
           url: post.url,
           content: post.content,
           source: post.source,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          // Copy the URL to clipboard
-          navigator.clipboard
-            .writeText(post.url)
-            .then(() => {
-              toast({
-                title: "Link copied",
-                description: "Post link has been copied to clipboard",
-              })
-            })
-            .catch(() => {
-              toast({
-                title: "Copy failed",
-                description: "Could not copy link to clipboard",
-                variant: "destructive",
-              })
-            })
         })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error || "Failed to share post",
-            variant: "destructive",
-          })
-        })
+      ).unwrap();
+      await navigator.clipboard.writeText(post.url);
+      toast({
+        title: "Link copied",
+        description: "Post link has been copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to share post",
+        variant: "destructive",
+      });
     }
   }
+};
 
   return (
     <div className="flex gap-2">
