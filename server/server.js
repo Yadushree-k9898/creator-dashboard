@@ -21,7 +21,7 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: ['https://creator-dashboard-ll1q.vercel.app'], 
+  origin: '*', 
   
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true, // Allow cookies
