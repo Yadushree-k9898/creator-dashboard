@@ -21,7 +21,8 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: ['https://creator-dashboard-ruddy.vercel.app'], // Add your frontend domain here
+  origin: ['https://creator-dashboard-ll1q.vercel.app'], 
+  
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true, // Allow cookies
 }));
