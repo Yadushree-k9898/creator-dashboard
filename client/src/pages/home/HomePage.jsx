@@ -82,7 +82,7 @@ const HomePage = () => {
             </div>
             <div className="md:w-1/2 flex justify-center animate-fadeIn" style={{ animationDelay: "0.4s" }}>
               <img
-                src="src/assets/g.png"
+                src="/images/g.png"
                 alt="Creator Dashboard"
                 className="rounded-lg shadow-lg max-w-full h-auto transition-all duration-500 hover:shadow-xl transform hover:scale-[1.02]"
               />
