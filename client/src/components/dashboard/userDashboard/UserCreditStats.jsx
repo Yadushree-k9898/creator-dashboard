@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Coins, Award, Calendar, Users } from "lucide-react"
+import { Coins, Award, Calendar, Users } from 'lucide-react'
 import { StatCard, ProgressBar } from "./StatComponents"
-import userService from "@/services/userService" 
+import { useSelector } from "react-redux"
 
 const UserCreditStats = () => {
-  const [dashboardData, setDashboardData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { dashboard, loading, error } = useSelector((state) => state.user);
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -18,25 +16,6 @@ const UserCreditStats = () => {
 
     return () => clearTimeout(timer)
   }, [])
-
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const data = await userService.getDashboard()
-        setDashboardData(data)
-        setError(null)
-      } catch (err) {
-        console.error("Failed to fetch dashboard:", err)
-        setError("Unable to load credit data. Please try again later.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchDashboard()
-  }, [])
-
-  const credits = dashboardData?.creditStats
 
   if (loading) {
     return (
@@ -73,7 +52,7 @@ const UserCreditStats = () => {
     )
   }
 
-  if (error || !credits) {
+  if (error || !dashboard?.creditStats) {
     return (
       <Card className="transition-all duration-300 shadow-md hover:shadow-lg animate-fadeIn">
         <CardHeader>
@@ -91,6 +70,8 @@ const UserCreditStats = () => {
     )
   }
 
+  const credits = dashboard.creditStats;
+  
   const creditData = {
     totalCredits: Number(credits.totalCredits) || 0,
     loginCredits: Number(credits.loginCredits) || 0,

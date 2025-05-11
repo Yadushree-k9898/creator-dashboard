@@ -1,22 +1,9 @@
-
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { useUserRole } from "../../hooks/useUserRole"
-import {
-  Home,
-  User,
-  CreditCard,
-  Newspaper,
-  Bookmark,
-  Settings,
-  Users,
-  BarChart,
-  Flag,
-  ChevronRight,
-  Menu,
-  X,
-} from "lucide-react"
+import { Home, User, CreditCard, Newspaper, Bookmark, Settings, Users, BarChart, Flag, ChevronRight, Menu, X, LogOut } from 'lucide-react'
 import { useState, useEffect } from "react"
+import { Button } from "../ui/button"
 
 const Sidebar = () => {
   const location = useLocation()
@@ -31,8 +18,20 @@ const Sidebar = () => {
       setIsVisible(true)
     }, 100)
 
-    return () => clearTimeout(timer)
-  }, [])
+    // Close sidebar when clicking outside on mobile
+    const handleClickOutside = (e) => {
+      if (isMobileOpen && !e.target.closest('.sidebar') && !e.target.closest('.sidebar-toggle')) {
+        setIsMobileOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMobileOpen])
 
   // Navigation items for regular users
   const userNavItems = [
@@ -67,24 +66,28 @@ const Sidebar = () => {
     <>
       {/* Mobile overlay */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden" onClick={() => setIsMobileOpen(false)} />
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden transition-opacity duration-300"
+          onClick={() => setIsMobileOpen(false)}
+        />
       )}
 
       {/* Mobile toggle button */}
       <button
-        className="fixed bottom-4 right-4 md:hidden z-40 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary/90 transition-all duration-300"
+        className="sidebar-toggle fixed bottom-4 right-4 md:hidden z-40 bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary/90 transition-all duration-300 flex items-center justify-center"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
+        aria-label={isMobileOpen ? "Close menu" : "Open menu"}
       >
         {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       <aside
-        className={`fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-40
-          transform transition-transform duration-300 ease-in-out
+        className={`sidebar fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg z-40
+          transform transition-all duration-300 ease-in-out
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} 
           md:translate-x-0 md:top-16 md:h-[calc(100vh-4rem)] md:z-20
           ${isVisible ? "opacity-100" : "opacity-0 md:opacity-100"}
-          overflow-y-auto flex flex-col`}
+          overflow-hidden flex flex-col`}
       >
         {user && (
           <div
@@ -99,8 +102,8 @@ const Sidebar = () => {
               >
                 <User size={20} />
               </div>
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">{user.name || "User"}</p>
+              <div className="overflow-hidden">
+                <p className="font-medium text-gray-900 dark:text-white truncate">{user.name || "User"}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{isAdmin ? "Admin" : "User"}</p>
               </div>
             </div>
@@ -119,7 +122,7 @@ const Sidebar = () => {
         )}
 
         {/* Navigation Menu */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
           <ul className="space-y-1 px-3">
             {navItems.map((item) => (
               <li key={item.path} className="group">
@@ -130,6 +133,7 @@ const Sidebar = () => {
                       ? "bg-primary text-white shadow-md"
                       : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
+                  onClick={() => setIsMobileOpen(false)}
                 >
                   <span
                     className={`mr-3 transition-transform duration-300 ${
@@ -145,6 +149,21 @@ const Sidebar = () => {
             ))}
           </ul>
         </nav>
+
+        {/* Logout button */}
+        <div className="p-3 border-t dark:border-gray-700">
+          <Button 
+            variant="outline" 
+            className="w-full justify-start text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400 border-gray-200 dark:border-gray-700"
+            onClick={() => {
+              // Your logout logic here
+              setIsMobileOpen(false)
+            }}
+          >
+            <LogOut size={18} className="mr-2" />
+            Logout
+          </Button>
+        </div>
       </aside>
     </>
   )

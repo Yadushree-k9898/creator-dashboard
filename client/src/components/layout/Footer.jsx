@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="transform hover:translate-y-[-2px] transition-transform duration-300">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 relative inline-block after:content-[''] after:absolute after:w-0 after:h-0.5 after:bg-primary after:left-0 after:bottom-0 hover:after:w-full after:transition-all after:duration-300">
-              Creator Dashboard
+              Credora
             </h3>
             <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
               A platform for creators to manage their profile, earn credits, and interact with content through a

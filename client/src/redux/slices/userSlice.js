@@ -17,15 +17,22 @@ export const fetchUserDashboard = createAsyncThunk(
 // Async thunk to fetch user activity logs
 export const fetchUserActivityLogs = createAsyncThunk(
   'user/fetchUserActivityLogs',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // Check if we already have activity logs to prevent redundant calls
-      const { recentActivity } = getState().user;
-      if (recentActivity && recentActivity.length > 0) {
-        return recentActivity;
-      }
-      
       const data = await userService.getActivityLogs();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Async thunk to update user profile
+export const updateUserProfile = createAsyncThunk(
+  'user/updateProfile',
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const data = await userService.updateProfile(profileData);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -39,13 +46,18 @@ const userSlice = createSlice({
     dashboard: null,
     recentActivity: [],
     loading: false,
+    profileUpdateLoading: false,
     error: null,
     dashboardLoaded: false,
     activityLoaded: false,
+    profileUpdateSuccess: false,
   },
   reducers: {
     clearUserErrors: (state) => {
       state.error = null;
+    },
+    resetProfileUpdateStatus: (state) => {
+      state.profileUpdateSuccess = false;
     }
   },
   extraReducers: (builder) => {
@@ -82,9 +94,35 @@ const userSlice = createSlice({
       .addCase(fetchUserActivityLogs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      
+      // Profile update cases
+      .addCase(updateUserProfile.pending, (state) => {
+        state.profileUpdateLoading = true;
+        state.error = null;
+        state.profileUpdateSuccess = false;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.profileUpdateLoading = false;
+        state.profileUpdateSuccess = true;
+        
+        // Update dashboard data if it exists
+        if (state.dashboard && action.payload.profile) {
+          state.dashboard.profile = action.payload.profile;
+        }
+        
+        // Update credits if they were returned
+        if (state.dashboard && action.payload.creditStats) {
+          state.dashboard.creditStats = action.payload.creditStats;
+        }
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.profileUpdateLoading = false;
+        state.error = action.payload;
+        state.profileUpdateSuccess = false;
       });
   },
 });
 
-export const { clearUserErrors } = userSlice.actions;
+export const { clearUserErrors, resetProfileUpdateStatus } = userSlice.actions;
 export default userSlice.reducer;

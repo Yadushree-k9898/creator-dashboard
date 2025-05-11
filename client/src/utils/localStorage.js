@@ -1,372 +1,3 @@
-// // /**
-// //  * Get an item from localStorage and parse it as JSON if possible.
-// //  * @param {string} key - The key to fetch from localStorage.
-// //  * @param {any} defaultValue - The default value if the key is not found.
-// //  * @returns {any} - The parsed value or the default value.
-// //  */
-// // export const getStorageItem = (key, defaultValue = null) => {
-// //   try {
-// //     const item = localStorage.getItem(key);
-// //     if (item === null) return defaultValue;
-
-// //     // Try to parse the item as JSON
-// //     try {
-// //       return JSON.parse(item);
-// //     } catch (err) {
-// //       // Return the string if it's not JSON
-// //       return item;
-// //     }
-// //   } catch (error) {
-// //     console.error("Error accessing localStorage:", error);
-// //     return defaultValue;
-// //   }
-// // };
-
-// // /**
-// //  * Set an item in localStorage.
-// //  * @param {string} key - The key to store the item under.
-// //  * @param {any} value - The value to store.
-// //  * @returns {boolean} - Returns true if successful, false otherwise.
-// //  */
-// // export const setStorageItem = (key, value) => {
-// //   try {
-// //     const serializedValue = typeof value === 'object' ? JSON.stringify(value) : value;
-// //     localStorage.setItem(key, serializedValue);
-// //     return true;
-// //   } catch (error) {
-// //     console.error("Error setting localStorage item:", error);
-// //     return false;
-// //   }
-// // };
-
-// // /**
-// //  * Remove an item from localStorage.
-// //  * @param {string} key - The key of the item to remove.
-// //  * @returns {boolean} - Returns true if successful, false otherwise.
-// //  */
-// // export const removeStorageItem = (key) => {
-// //   try {
-// //     localStorage.removeItem(key);
-// //     return true;
-// //   } catch (error) {
-// //     console.error("Error removing localStorage item:", error);
-// //     return false;
-// //   }
-// // };
-
-// // /**
-// //  * Clear all items from localStorage.
-// //  * @returns {boolean} - Returns true if successful, false otherwise.
-// //  */
-// // export const clearStorage = () => {
-// //   try {
-// //     localStorage.clear();
-// //     return true;
-// //   } catch (error) {
-// //     console.error("Error clearing localStorage:", error);
-// //     return false;
-// //   }
-// // };
-
-// // /**
-// //  * Save the token(s) to localStorage.
-// //  * @param {Object} tokens - The object containing accessToken and refreshToken.
-// //  * @returns {boolean} - Returns true if the tokens were saved, false otherwise.
-// //  */
-// // export const saveToken = (tokens) => {
-// //   try {
-// //     if (tokens && tokens.accessToken && tokens.refreshToken) {
-// //       localStorage.setItem("auth_token", JSON.stringify(tokens));
-// //       console.log("Token saved successfully:", tokens);
-// //       return true;
-// //     }
-// //     console.error("Invalid token structure:", tokens);
-// //     return false;
-// //   } catch (error) {
-// //     console.error("Error saving token to localStorage:", error);
-// //     return false;
-// //   }
-// // };
-
-
-// // export const getToken = () => {
-// //   try {
-// //     const tokenString = localStorage.getItem("auth_token");
-// //     return tokenString ? JSON.parse(tokenString) : null;
-// //   } catch (error) {
-// //     console.error("Error parsing token from localStorage:", error);
-// //     return null;
-// //   }
-// // };
-
-
-
-// // /**
-// //  * Remove the token(s) from localStorage.
-// //  * @returns {boolean} - Returns true if the tokens were removed, false otherwise.
-// //  */
-// // export const removeToken = () => {
-// //   try {
-// //     localStorage.removeItem("auth_token");
-// //     console.log("Token removed successfully");
-// //     return true;
-// //   } catch (error) {
-// //     console.error("Error removing token from localStorage:", error);
-// //     return false;
-// //   }
-// // };
-
-// // /**
-// //  * Save the user data to localStorage.
-// //  * @param {Object} user - The user object to save.
-// //  * @returns {boolean} - Returns true if the user data was saved, false otherwise.
-// //  */
-// // export const saveUser = (user) => {
-// //   return setStorageItem("user_data", user);
-// // };
-
-// // /**
-// //  * Get the user data from localStorage.
-// //  * @returns {Object|null} - The user data or null if not found.
-// //  */
-// // export const getUser = () => getStorageItem("user_data");
-
-// // /**
-// //  * Remove the user data from localStorage.
-// //  * @returns {boolean} - Returns true if the user data was removed, false otherwise.
-// //  */
-// // export const removeUser = () => removeStorageItem("user_data");
-
-// // /**
-// //  * Get all saved posts from the backend.
-// //  * @returns {Promise<Array>} - Array of saved posts.
-// //  */
-// // export const getSavedPosts = async () => {
-// //   try {
-// //     const token = getToken(); // Use the standardized getToken function
-// //     if (!token) throw new Error("No token found. Please log in.");
-
-// //     const response = await axios.get(`${API_URL}/saved`, {
-// //       headers: { Authorization: `Bearer ${token.accessToken}` },
-// //     });
-// //     return response.data;
-// //   } catch (error) {
-// //     console.error("Error fetching saved posts:", error.message);
-// //     throw error;
-// //   }
-// // };
-
-// // /**
-// //  * Save a post to localStorage.
-// //  * @param {Object} post - The post object to save.
-// //  * @returns {boolean} - Returns true if the post was saved, false otherwise.
-// //  */
-// // export const savePost = async (post) => {
-// //   try {
-// //     const savedPosts = await getSavedPosts();
-// //     if (savedPosts.some((p) => p.id === post.id)) return true;
-
-// //     const updatedPosts = [...savedPosts, { ...post, savedAt: new Date().toISOString() }];
-// //     return setStorageItem("saved_posts", updatedPosts);
-// //   } catch (error) {
-// //     console.error("Error saving post:", error);
-// //     return false;
-// //   }
-// // };
-
-// // /**
-// //  * Remove a saved post by ID.
-// //  * @param {string} postId - The ID of the post to remove.
-// //  * @returns {boolean} - Returns true if the post was removed, false otherwise.
-// //  */
-// // export const removeSavedPost = async (postId) => {
-// //   try {
-// //     const savedPosts = await getSavedPosts();
-// //     const updatedPosts = savedPosts.filter((post) => post.id !== postId);
-// //     return setStorageItem("saved_posts", updatedPosts);
-// //   } catch (error) {
-// //     console.error("Error removing saved post:", error);
-// //     return false;
-// //   }
-// // };
-
-
-
-
-
-
-
-
-// /**
-//  * Get an item from localStorage and parse it as JSON if possible.
-//  * @param {string} key - The key to fetch from localStorage.
-//  * @param {any} defaultValue - The default value if the key is not found.
-//  * @returns {any} - The parsed value or the default value.
-//  */
-// export const getStorageItem = (key, defaultValue = null) => {
-//   try {
-//     const item = localStorage.getItem(key)
-//     if (item === null) return defaultValue
-
-//     // Try to parse the item as JSON
-//     try {
-//       return JSON.parse(item)
-//     } catch (err) {
-//       // Return the string if it's not JSON
-//       return item
-//     }
-//   } catch (error) {
-//     console.error("Error accessing localStorage:", error)
-//     return defaultValue
-//   }
-// }
-
-// /**
-//  * Set an item in localStorage.
-//  * @param {string} key - The key to store the item under.
-//  * @param {any} value - The value to store.
-//  * @returns {boolean} - Returns true if successful, false otherwise.
-//  */
-// export const setStorageItem = (key, value) => {
-//   try {
-//     const serializedValue = typeof value === "object" ? JSON.stringify(value) : value
-//     localStorage.setItem(key, serializedValue)
-//     return true
-//   } catch (error) {
-//     console.error("Error setting localStorage item:", error)
-//     return false
-//   }
-// }
-
-// /**
-//  * Remove an item from localStorage.
-//  * @param {string} key - The key of the item to remove.
-//  * @returns {boolean} - Returns true if successful, false otherwise.
-//  */
-// export const removeStorageItem = (key) => {
-//   try {
-//     localStorage.removeItem(key)
-//     return true
-//   } catch (error) {
-//     console.error("Error removing localStorage item:", error)
-//     return false
-//   }
-// }
-
-// /**
-//  * Clear all items from localStorage.
-//  * @returns {boolean} - Returns true if successful, false otherwise.
-//  */
-// export const clearStorage = () => {
-//   try {
-//     localStorage.clear()
-//     return true
-//   } catch (error) {
-//     console.error("Error clearing localStorage:", error)
-//     return false
-//   }
-// }
-
-// /**
-//  * Save the token(s) to localStorage.
-//  * @param {Object} tokens - The object containing accessToken and refreshToken.
-//  * @returns {boolean} - Returns true if the tokens were saved, false otherwise.
-//  */
-// export const saveToken = (tokens) => {
-//   try {
-//     // Handle different token structures from backend
-//     let tokenToSave = tokens
-
-//     // If the backend returns a single token string
-//     if (typeof tokens === "string") {
-//       tokenToSave = { accessToken: tokens, refreshToken: null }
-//     }
-//     // If the backend returns an object with a token property
-//     else if (tokens && tokens.token && !tokens.accessToken) {
-//       tokenToSave = {
-//         accessToken: tokens.token,
-//         refreshToken: tokens.refreshToken || null,
-//       }
-//     }
-
-//     // Ensure we have at least an accessToken
-//     if (tokenToSave && tokenToSave.accessToken) {
-//       localStorage.setItem("token", JSON.stringify(tokenToSave))
-//       console.log("Token saved successfully:", tokenToSave)
-//       return true
-//     }
-
-//     console.error("Invalid token structure:", tokens)
-//     return false
-//   } catch (error) {
-//     console.error("Error saving token to localStorage:", error)
-//     return false
-//   }
-// }
-
-// /**
-//  * Get the token from localStorage.
-//  * @returns {Object|null} - The token object or null if not found.
-//  */
-// export const getToken = () => {
-//   try {
-//     const tokenString = localStorage.getItem("token")
-//     if (!tokenString) return null
-
-//     const parsedToken = JSON.parse(tokenString)
-
-//     // Handle different token structures
-//     if (typeof parsedToken === "string") {
-//       return { accessToken: parsedToken, refreshToken: null }
-//     }
-
-//     return parsedToken
-//   } catch (error) {
-//     console.error("Error parsing token from localStorage:", error)
-//     return null
-//   }
-// }
-
-// /**
-//  * Remove the token from localStorage.
-//  * @returns {boolean} - Returns true if the token was removed, false otherwise.
-//  */
-// export const removeToken = () => {
-//   try {
-//     localStorage.removeItem("token")
-//     console.log("Token removed successfully")
-//     return true
-//   } catch (error) {
-//     console.error("Error removing token from localStorage:", error)
-//     return false
-//   }
-// }
-
-// /**
-//  * Save the user data to localStorage.
-//  * @param {Object} user - The user object to save.
-//  * @returns {boolean} - Returns true if the user data was saved, false otherwise.
-//  */
-// export const saveUser = (user) => {
-//   return setStorageItem("user_data", user)
-// }
-
-// /**
-//  * Get the user data from localStorage.
-//  * @returns {Object|null} - The user data or null if not found.
-//  */
-// export const getUser = () => getStorageItem("user_data")
-
-// /**
-//  * Remove the user data from localStorage.
-//  * @returns {boolean} - Returns true if the user data was removed, false otherwise.
-//  */
-// export const removeUser = () => removeStorageItem("user_data")
-
-
-
-
-
 /**
  * Get an item from localStorage and parse it as JSON if possible.
  * @param {string} key - The key to fetch from localStorage.
@@ -437,73 +68,101 @@ export const clearStorage = () => {
   }
 };
 
+// STANDARDIZED TOKEN HANDLING
+const AUTH_TOKEN_KEY = "auth_token";
+
 /**
-<<<<<<< HEAD
- * Save the token(s) to localStorage.
- * @param {Object} tokens - The object containing accessToken and refreshToken.
- * @returns {boolean} - Returns true if the tokens were saved, false otherwise.
+ * Save the token(s) to localStorage with consistent format.
+ * @param {Object|string} token - The token object or string
+ * @returns {boolean} - Returns true if the token was saved, false otherwise.
  */
-export const saveToken = (tokens) => {
+export const saveToken = (token) => {
   try {
-    if (tokens && tokens.accessToken && tokens.refreshToken) {
-      localStorage.setItem("auth_token", JSON.stringify(tokens));
-      console.log("Token saved successfully:", tokens);
-      return true;
+    // Standardize token format
+    let tokenToStore = token;
+    
+    // If it's a string, convert to object format
+    if (typeof token === 'string') {
+      tokenToStore = { accessToken: token, refreshToken: null };
+    } 
+    // If it's an object but missing refreshToken
+    else if (token && typeof token === 'object' && token.accessToken && !token.refreshToken) {
+      tokenToStore = { ...token, refreshToken: null };
     }
-    console.error("Invalid token structure:", tokens);
-    return false;
+    
+    // Store token
+    setStorageItem(AUTH_TOKEN_KEY, tokenToStore);
+    console.log("Token saved successfully:", tokenToStore);
+    return true;
   } catch (error) {
     console.error("Error saving token to localStorage:", error);
     return false;
   }
 };
 
-
+/**
+ * Get the token from localStorage.
+ * @returns {Object|null} - The token object or null if not found.
+ */
 export const getToken = () => {
   try {
-    const tokenString = localStorage.getItem("auth_token");
-    return tokenString ? JSON.parse(tokenString) : null;
+    const token = getStorageItem(AUTH_TOKEN_KEY);
+    
+    // If token is a string, convert to object format
+    if (typeof token === 'string') {
+      return { accessToken: token, refreshToken: null };
+    }
+    
+    return token;
   } catch (error) {
-    console.error("Error parsing token from localStorage:", error);
+    console.error("Error getting token from localStorage:", error);
     return null;
   }
 };
 
-
+/**
+ * Get just the access token string
+ * @returns {string|null} - The access token string or null
+ */
+export const getAccessToken = () => {
+  const token = getToken();
+  return token?.accessToken || null;
+};
 
 /**
  * Remove the token(s) from localStorage.
  * @returns {boolean} - Returns true if the tokens were removed, false otherwise.
  */
 export const removeToken = () => {
-  try {
-    localStorage.removeItem("auth_token");
-    console.log("Token removed successfully");
-    return true;
-  } catch (error) {
-    console.error("Error removing token from localStorage:", error);
-    return false;
-  }
-}
+  return removeStorageItem(AUTH_TOKEN_KEY);
+};
+
+/**
+ * Get auth headers for API requests
+ * @returns {Object} - Headers object with Authorization if token exists
+ */
+export const getAuthHeaders = () => {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 /**
  * Save the user data to localStorage.
  * @param {Object} user - The user object to save.
  * @returns {boolean} - Returns true if the user data was saved, false otherwise.
  */
-
 export const saveUser = (user) => {
-  return setStorageItem("user_data", user)
-}
+  return setStorageItem("user_data", user);
+};
 
 /**
  * Get the user data from localStorage.
  * @returns {Object|null} - The user data or null if not found.
  */
-export const getUser = () => getStorageItem("user_data")
+export const getUser = () => getStorageItem("user_data");
 
 /**
  * Remove the user data from localStorage.
  * @returns {boolean} - Returns true if the user data was removed, false otherwise.
  */
-export const removeUser = () => removeStorageItem("user_data")
+export const removeUser = () => removeStorageItem("user_data");

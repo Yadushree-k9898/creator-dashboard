@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { User, Mail, FileText, Shield, CreditCard, CheckCircle, AlertTriangle } from "lucide-react";
+import { User, Mail, FileText, CheckCircle, AlertTriangle, CreditCard } from "lucide-react";
+import { getAccessToken, getUser, saveUser } from "../../utils/localStorage.js";
 
 const ProfileSettings = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const ProfileSettings = () => {
       setLoading(true);
       const { data } = await axios.get("http://localhost:5000/api/users/profile", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
       });
       setFormData({
@@ -28,15 +29,27 @@ const ProfileSettings = () => {
       });
       setProfileCompleted(data.profileCompleted);
       setCredits(data.credits || 0);
+      saveUser(data);
     } catch (error) {
-      toast.error("Failed to fetch profile");
+      toast.error("Failed to fetch profile: " + (error?.response?.data?.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
+    const user = getUser();
+    if (user) {
+      setFormData({
+        name: user.name,
+        email: user.email,
+        bio: user.bio || "",
+      });
+      setProfileCompleted(user.profileCompleted);
+      setCredits(user.credits || 0);
+    } else {
+      fetchProfile();
+    }
   }, []);
 
   const handleChange = (e) => {
@@ -49,7 +62,7 @@ const ProfileSettings = () => {
       setLoading(true);
       const { data } = await axios.put("http://localhost:5000/api/users/profile", formData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAccessToken()}`,
         },
       });
       setFormData({
@@ -59,9 +72,10 @@ const ProfileSettings = () => {
       });
       setProfileCompleted(data.user.profileCompleted);
       setCredits(data.user.credits);
+      saveUser(data.user);
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error("Failed to update profile");
+      toast.error("Failed to update profile: " + (error?.response?.data?.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -152,66 +166,16 @@ const ProfileSettings = () => {
                 className="w-full px-4 py-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all duration-300 resize-none"
                 placeholder="Tell us about yourself"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Your bio will be shown on your public profile
-              </p>
-            </div>
-
-            {/* Profile Status Card */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border dark:border-gray-700">
-              <h3 className="font-medium text-gray-800 dark:text-white mb-3 flex items-center">
-                <CheckCircle size={18} className="mr-2 text-primary" />
-                Profile Status
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">Profile Completion</span>
-                  <div className="flex items-center">
-                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full" 
-                        style={{ width: profileCompleted ? '100%' : '60%' }}
-                      ></div>
-                    </div>
-                    <span className={profileCompleted ? "text-green-500" : "text-yellow-500"}>
-                      {profileCompleted ? "100%" : "60%"}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">Available Credits</span>
-                  <span className="font-medium text-primary">{credits}</span>
-                </div>
-              </div>
             </div>
 
             {/* Save Button */}
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center"
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                 disabled={loading}
               >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Saving Changes...
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
+                {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </form>

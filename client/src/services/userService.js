@@ -1,46 +1,11 @@
-import axios from 'axios';
+import API from "./axiosInstance";
 
-
-const API = 'http://localhost:5000/api/users';
-
-const axiosInstance = axios.create({
-  baseURL: API,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add request timeout to prevent hanging requests
-axiosInstance.defaults.timeout = 10000; // 10 seconds timeout
-
-
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const tokenString = localStorage.getItem('auth_token');
-    console.log('Auth token string:', tokenString); // 👀
-
-    if (tokenString) {
-      try {
-        const tokenObj = JSON.parse(tokenString);
-        console.log('Parsed token object:', tokenObj); // 👀
-        if (tokenObj.accessToken) {
-          config.headers.Authorization = `Bearer ${tokenObj.accessToken}`;
-          console.log('Set Authorization:', config.headers.Authorization); // 👀
-        }
-      } catch (err) {
-        console.error('Error parsing auth token:', err);
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
+const API_URL = "/api/users";
 
 // Dashboard API - get all user dashboard data
 const getDashboard = async () => {
   try {
-    const res = await axiosInstance.get('/dashboard');
+    const res = await API.get(`${API_URL}/dashboard`);
     if (!res.data) {
       throw new Error('No data received from server');
     }
@@ -54,7 +19,7 @@ const getDashboard = async () => {
 // Activity logs API - get user activity history
 const getActivityLogs = async () => {
   try {
-    const res = await axiosInstance.get('/activity');
+    const res = await API.get(`${API_URL}/activity`);
     if (!res.data) {
       throw new Error('No activity logs found');
     }
@@ -65,10 +30,21 @@ const getActivityLogs = async () => {
   }
 };
 
+// Update profile API
+const updateProfile = async (profileData) => {
+  try {
+    const res = await API.put(`${API_URL}/profile`, profileData);
+    return res.data;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+};
+
 // Save post API
 const savePost = async (postData) => {
   try {
-    const res = await axiosInstance.post('/save-post', postData);
+    const res = await API.post(`${API_URL}/save-post`, postData);
     return res.data;
   } catch (error) {
     console.error('Error saving post:', error);
@@ -77,9 +53,9 @@ const savePost = async (postData) => {
 };
 
 // Report post API
-const reportPost = async (postId) => {
+const reportPost = async (postId, reason) => {
   try {
-    const res = await axiosInstance.put(`/report-post/${postId}`);
+    const res = await API.put(`${API_URL}/report-post/${postId}`, { reason });
     return res.data;
   } catch (error) {
     console.error('Error reporting post:', error);
@@ -90,7 +66,7 @@ const reportPost = async (postId) => {
 // Share post API
 const sharePost = async (postId) => {
   try {
-    const res = await axiosInstance.post(`/share-post/${postId}`);
+    const res = await API.post(`${API_URL}/share-post/${postId}`);
     return res.data;
   } catch (error) {
     console.error('Error sharing post:', error);
@@ -101,6 +77,7 @@ const sharePost = async (postId) => {
 const userService = {
   getDashboard,
   getActivityLogs,
+  updateProfile,
   savePost,
   reportPost,
   sharePost,

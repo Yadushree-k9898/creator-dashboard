@@ -1,26 +1,62 @@
-import axios from 'axios';
+import API from "./axiosInstance";
 
-const API_URL = 'http://localhost:5000/api/auth'; 
+const API_URL = "/api/auth";
 
 // Register a new user
 export const register = async (userData) => {
-  // Ensure the role is correct, either 'User' or 'admin'
-  userData.role = userData.role.charAt(0).toUpperCase() + userData.role.slice(1); // Capitalize first letter
+  try {
+    // Ensure the role is correct, either 'User' or 'admin'
+    userData.role = userData.role.charAt(0).toUpperCase() + userData.role.slice(1); // Capitalize first letter
 
-  const response = await axios.post(`${API_URL}/register`, userData);
-  return response.data;
+    const response = await API.post(`${API_URL}/register`, userData);
+    return response.data;
+  } catch (error) {
+    console.error("Registration error:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 // Login a user
 export const login = async (userData) => {
-  const response = await axios.post(`${API_URL}/login`, userData);
-  return response.data;
+  try {
+    const response = await API.post(`${API_URL}/login`, userData);
+    return response.data;
+  } catch (error) {
+    console.error("Login error:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 // Get the current user
-export const getMe = async (token) => {
-  const response = await axios.get(`${API_URL}/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data;
+export const getMe = async () => {
+  try {
+    const response = await API.get(`${API_URL}/me`);
+    return response.data;
+  } catch (error) {
+    console.error("Get current user error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Refresh token
+export const refreshToken = async (refreshToken) => {
+  try {
+    const response = await API.post(`${API_URL}/refresh`, { refreshToken });
+    return response.data;
+  } catch (error) {
+    console.error("Token refresh error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Logout
+export const logout = async () => {
+  try {
+    const response = await API.post(`${API_URL}/logout`);
+    return response.data;
+  } catch (error) {
+    console.error("Logout error:", error.response?.data || error.message);
+    // Even if the server-side logout fails, we'll still clear local storage
+    throw error;
+  }
 };
