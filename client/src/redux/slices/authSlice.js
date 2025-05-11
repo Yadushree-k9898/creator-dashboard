@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 // // Redux Toolkit slice for authentication
+=======
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 // import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 // import * as authService from '../../services/authService';
 // import { saveToken, getToken, removeToken } from '../../utils/localStorage';
@@ -11,6 +14,7 @@
 //   error: null,
 // };
 
+<<<<<<< HEAD
 // // Thunks for user registration
 // export const registerUser = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
 //   try {
@@ -47,6 +51,36 @@
 //     return { user: data.user, credits: data.credits };
 //   } catch (err) {
 //     return thunkAPI.rejectWithValue(err.response?.data?.message || 'Failed to fetch current user');
+=======
+// // Thunks for registration, login, and fetching current user
+// export const registerUser = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
+//   try {
+//     const data = await authService.register(userData);
+//     saveToken(data.token); // Save token when registering
+//     return data;
+//   } catch (err) {
+//     return thunkAPI.rejectWithValue(err.response.data.message);
+//   }
+// });
+
+// export const loginUser = createAsyncThunk('auth/login', async (userData, thunkAPI) => {
+//   try {
+//     const data = await authService.login(userData);
+//     saveToken(data.token); // Save token after login
+//     return { user: data.user, credits: data.credits, token: data.token };
+//   } catch (err) {
+//     return thunkAPI.rejectWithValue(err.response.data.message);
+//   }
+// });
+
+// export const fetchCurrentUser = createAsyncThunk('auth/me', async (_, thunkAPI) => {
+//   try {
+//     const token = getToken(); // Get the token from localStorage
+//     const data = await authService.getMe(token);
+//     return data;
+//   } catch (err) {
+//     return thunkAPI.rejectWithValue(err.response.data.message);
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 //   }
 // });
 
@@ -56,10 +90,18 @@
 //   initialState,
 //   reducers: {
 //     logout: (state) => {
+<<<<<<< HEAD
 //       state.user = null;
 //       state.token = null;
 //       state.credits = {};
 //       removeToken();
+=======
+//       // Reset user data and clear the token on logout
+//       state.user = null;
+//       state.token = null;
+//       state.credits = {};
+//       removeToken(); 
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 //     },
 //   },
 //   extraReducers: (builder) => {
@@ -69,7 +111,10 @@
 //         state.loading = false;
 //         state.user = action.payload.user;
 //         state.token = action.payload.token;
+<<<<<<< HEAD
 //         state.credits = action.payload.credits;
+=======
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 //       })
 //       .addCase(registerUser.rejected, (state, action) => {
 //         state.loading = false;
@@ -79,8 +124,13 @@
 //       .addCase(loginUser.fulfilled, (state, action) => {
 //         state.loading = false;
 //         state.user = action.payload.user;
+<<<<<<< HEAD
 //         state.token = action.payload.token;
 //         state.credits = action.payload.credits;
+=======
+//         state.credits = action.payload.credits;
+//         state.token = action.payload.token;
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 //       })
 //       .addCase(loginUser.rejected, (state, action) => {
 //         state.loading = false;
@@ -105,10 +155,17 @@
 
 
 
+<<<<<<< HEAD
 // Redux Toolkit slice for authentication
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import * as authService from "../../services/authService"
 import { saveToken, getToken, removeToken } from "../../utils/localStorage"
+=======
+
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import * as authService from '../../services/authService';
+import { saveToken, getToken, removeToken } from '../../utils/localStorage';
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 
 const initialState = {
   user: null,
@@ -118,6 +175,7 @@ const initialState = {
   error: null,
 }
 
+<<<<<<< HEAD
 // Thunks for user registration
 export const registerUser = createAsyncThunk("auth/register", async (userData, thunkAPI) => {
   try {
@@ -133,11 +191,20 @@ export const registerUser = createAsyncThunk("auth/register", async (userData, t
       credits: data.credits || {},
       token: data.token?.accessToken || data.token,
     }
+=======
+// Thunks for registration, login, and fetching current user
+export const registerUser = createAsyncThunk('auth/register', async (userData, thunkAPI) => {
+  try {
+    const data = await authService.register(userData);
+    saveToken(data.token); // Save token when registering
+    return data;
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Registration failed")
   }
 })
 
+<<<<<<< HEAD
 // Thunks for user login
 export const loginUser = createAsyncThunk("auth/login", async (userData, thunkAPI) => {
   try {
@@ -153,16 +220,31 @@ export const loginUser = createAsyncThunk("auth/login", async (userData, thunkAP
       credits: data.credits || {},
       token: data.token?.accessToken || data.token,
     }
+=======
+export const loginUser = createAsyncThunk('auth/login', async (userData, thunkAPI) => {
+  try {
+    const data = await authService.login(userData);
+    saveToken(data.token); // Save token after login
+    return { user: data.user, credits: data.credits, token: data.token };
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Login failed")
   }
 })
 
+<<<<<<< HEAD
 // Thunks for fetching current user
 export const fetchCurrentUser = createAsyncThunk("auth/me", async (_, thunkAPI) => {
   try {
     const data = await authService.getMe()
     return { user: data.user, credits: data.credits || {} }
+=======
+export const fetchCurrentUser = createAsyncThunk('auth/me', async (_, thunkAPI) => {
+  try {
+    const token = getToken(); // Get the token from localStorage
+    const data = await authService.getMe(token);
+    return data;
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || "Failed to fetch current user")
   }
@@ -174,6 +256,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout: (state) => {
+<<<<<<< HEAD
       state.user = null
       state.token = null
       state.credits = {}
@@ -181,6 +264,13 @@ const authSlice = createSlice({
     },
     clearAuthError: (state) => {
       state.error = null
+=======
+      // Reset user data and clear the token on logout
+      state.user = null;
+      state.token = null;
+      state.credits = {};
+      removeToken(); 
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
     },
   },
   extraReducers: (builder) => {
@@ -204,10 +294,17 @@ const authSlice = createSlice({
         state.error = null
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+<<<<<<< HEAD
         state.loading = false
         state.user = action.payload.user
         state.token = action.payload.token
         state.credits = action.payload.credits
+=======
+        state.loading = false;
+        state.user = action.payload.user;
+        state.credits = action.payload.credits;
+        state.token = action.payload.token;
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false

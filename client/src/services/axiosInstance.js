@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import axios from "axios";
 
 // const API = axios.create({
@@ -23,6 +24,11 @@
 
 import axios from "axios"
 import { getToken } from "../utils/localStorage"
+=======
+
+
+import axios from "axios";
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 
 const API = axios.create({
   baseURL: "http://localhost:5000", // Your base API URL
@@ -31,9 +37,15 @@ const API = axios.create({
 // Attach token to every request
 API.interceptors.request.use(
   (config) => {
+<<<<<<< HEAD
     const token = getToken()
     if (token && token.accessToken) {
       config.headers.Authorization = `Bearer ${token.accessToken}`
+=======
+    const token = localStorage.getItem("token"); // Assuming the token is stored in localStorage
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`; // Attach the token to request headers
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
     }
     return config
   },

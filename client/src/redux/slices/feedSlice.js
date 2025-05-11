@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 // import * as feedService from "../../services/feedService";
 
@@ -277,6 +278,10 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import * as feedService from "../../services/feedService"
+=======
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import * as feedService from "../../services/feedService";
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
 
 // ======== ASYNC THUNKS =========
 
@@ -335,8 +340,13 @@ export const savePostToFeedAsync = createAsyncThunk("feed/savePostAsync", async 
 })
 
 // Report post
+<<<<<<< HEAD
 export const reportPostFromFeedAsync = createAsyncThunk(
   "feed/reportPostAsync",
+=======
+export const reportPostFromFeed = createAsyncThunk(
+  "feed/reportPost",
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
   async (postData, { rejectWithValue }) => {
     try {
       const response = await feedService.reportPost(postData)
@@ -410,7 +420,41 @@ const feedSlice = createSlice({
       state.page = 1 // Reset to first page when changing items per page
     },
     resetFeedErrors: (state) => {
+<<<<<<< HEAD
       state.error = null
+=======
+      state.error = null;
+    },
+    savePostToFeed: (state, action) => {
+      const post = action.payload;
+      // Check if the post is already saved
+      const existingPostIndex = state.savedPosts.findIndex(
+        (savedPost) => savedPost.postId === post.postId || savedPost.url === post.url
+      );
+      
+      if (existingPostIndex === -1) {
+        state.savedPosts.push(post);
+      }
+      
+      // Update the saved status in allPosts
+      const allPostIndex = state.allPosts.findIndex(
+        (item) => item.postId === post.postId || item.url === post.url
+      );
+      
+      if (allPostIndex !== -1) {
+        state.allPosts[allPostIndex].saved = true;
+      }
+    },
+    sharePostFromFeed: (state, action) => {
+      const post = action.payload;
+      const postIndex = state.allPosts.findIndex(
+        (item) => item.postId === post.postId || item.url === post.url
+      );
+      
+      if (postIndex !== -1) {
+        state.allPosts[postIndex].shared = true;
+      }
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
     },
   },
   extraReducers: (builder) => {
@@ -627,10 +671,45 @@ const feedSlice = createSlice({
         state.sharePostLoading = false
         state.error = action.payload
       })
+
+      // REPORT
+      .addCase(reportPostFromFeed.pending, (state) => {
+        // Optional loading state for reporting
+      })
+      .addCase(reportPostFromFeed.fulfilled, (state, action) => {
+        const { postId, url, reason } = action.payload;
+        
+        // Update the post in allPosts
+        const postIndex = state.allPosts.findIndex(
+          (post) => post.postId === postId || post.url === url
+        );
+        
+        if (postIndex !== -1) {
+          state.allPosts[postIndex].reported = true;
+          state.allPosts[postIndex].reportReason = reason;
+        }
+      })
+      .addCase(reportPostFromFeed.rejected, (state, action) => {
+        state.error = action.payload;
+      });
   },
 })
 
 // ======== EXPORTS =========
+<<<<<<< HEAD
 export const { setActiveSource, setSearchQuery, setPage, setItemsPerPage, resetFeedErrors } = feedSlice.actions
 
 export default feedSlice.reducer
+=======
+export const {
+  setActiveSource,
+  setSearchQuery,
+  setPage,
+  setItemsPerPage,
+  resetFeedErrors,
+  savePostToFeed,
+  sharePostFromFeed,
+} = feedSlice.actions;
+
+export default feedSlice.reducer;
+>>>>>>> parent of aa6cda1 (get token and save token resolved)
