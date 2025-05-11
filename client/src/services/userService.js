@@ -1,11 +1,11 @@
 import API from "./axiosInstance";
 
-const API_URL = "/api/users";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Dashboard API - get all user dashboard data
 const getDashboard = async () => {
   try {
-    const res = await API.get(`${API_URL}/dashboard`);
+    const res = await API.get(`${API_URL}/users/dashboard`);
     if (!res.data) {
       throw new Error('No data received from server');
     }
@@ -19,7 +19,7 @@ const getDashboard = async () => {
 // Activity logs API - get user activity history
 const getActivityLogs = async () => {
   try {
-    const res = await API.get(`${API_URL}/activity`);
+    const res = await API.get(`${API_URL}/users/activity`);
     if (!res.data) {
       throw new Error('No activity logs found');
     }
@@ -33,7 +33,7 @@ const getActivityLogs = async () => {
 // Update profile API
 const updateProfile = async (profileData) => {
   try {
-    const res = await API.put(`${API_URL}/profile`, profileData);
+    const res = await API.put(`${API_URL}/users/profile`, profileData);
     return res.data;
   } catch (error) {
     console.error('Error updating profile:', error);
@@ -44,7 +44,7 @@ const updateProfile = async (profileData) => {
 // Save post API
 const savePost = async (postData) => {
   try {
-    const res = await API.post(`${API_URL}/save-post`, postData);
+    const res = await API.post(`${API_URL}/users/save-post`, postData);
     return res.data;
   } catch (error) {
     console.error('Error saving post:', error);
@@ -55,7 +55,7 @@ const savePost = async (postData) => {
 // Report post API
 const reportPost = async (postId, reason) => {
   try {
-    const res = await API.put(`${API_URL}/report-post/${postId}`, { reason });
+    const res = await API.put(`${API_URL}/users/report-post/${postId}`, { reason });
     return res.data;
   } catch (error) {
     console.error('Error reporting post:', error);
@@ -66,7 +66,7 @@ const reportPost = async (postId, reason) => {
 // Share post API
 const sharePost = async (postId) => {
   try {
-    const res = await API.post(`${API_URL}/share-post/${postId}`);
+    const res = await API.post(`${API_URL}/users/share-post/${postId}`);
     return res.data;
   } catch (error) {
     console.error('Error sharing post:', error);

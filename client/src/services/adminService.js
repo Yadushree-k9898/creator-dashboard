@@ -1,11 +1,11 @@
 import API from "./axiosInstance";
 
-const API_URL = "/api/admin";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Get all users with pagination
 export const getAllUsers = async (page = 1, limit = 10) => {
   try {
-    const response = await API.get(`${API_URL}/users?page=${page}&limit=${limit}`);
+    const response = await API.get(`${API_URL}/admin/users?page=${page}&limit=${limit}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -16,7 +16,7 @@ export const getAllUsers = async (page = 1, limit = 10) => {
 // Get a single user by ID
 export const getUserById = async (userId) => {
   try {
-    const response = await API.get(`${API_URL}/users/${userId}`);
+    const response = await API.get(`${API_URL}/admin/users/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -27,7 +27,7 @@ export const getUserById = async (userId) => {
 // Update a user's role
 export const updateUserRole = async (userId, role) => {
   try {
-    const response = await API.put(`${API_URL}/users/role`, { userId, role });
+    const response = await API.put(`${API_URL}/admin/users/role`, { userId, role });
     return response.data;
   } catch (error) {
     console.error("Error updating user role:", error);
@@ -38,7 +38,7 @@ export const updateUserRole = async (userId, role) => {
 // Update a user's credits
 export const updateUserCredits = async (userId, credits) => {
   try {
-    const response = await API.put(`${API_URL}/users/credits`, { userId, credits });
+    const response = await API.put(`${API_URL}/admin/users/credits`, { userId, credits });
     return response.data;
   } catch (error) {
     console.error("Error updating user credits:", error);
@@ -49,7 +49,7 @@ export const updateUserCredits = async (userId, credits) => {
 // Get the admin dashboard data
 export const getAdminDashboard = async () => {
   try {
-    const response = await API.get(`${API_URL}/dashboard`);
+    const response = await API.get(`${API_URL}/admin/dashboard`);
     return response.data;
   } catch (error) {
     console.error("Error fetching admin dashboard:", error);
@@ -60,7 +60,7 @@ export const getAdminDashboard = async () => {
 // Get activity logs with pagination
 export const getActivityLogs = async (page = 1, limit = 10) => {
   try {
-    const response = await API.get(`${API_URL}/activity-logs?page=${page}&limit=${limit}`);
+    const response = await API.get(`${API_URL}/admin/activity-logs?page=${page}&limit=${limit}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching activity logs:", error);

@@ -4,6 +4,7 @@ import { useUserRole } from "../../hooks/useUserRole"
 import { Home, User, CreditCard, Newspaper, Bookmark, Settings, Users, BarChart, Flag, ChevronRight, Menu, X, LogOut } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Button } from "../ui/button"
+import Logout from "@/pages/Auth/Logout"
 
 const Sidebar = () => {
   const location = useLocation()
@@ -161,7 +162,7 @@ const Sidebar = () => {
             }}
           >
             <LogOut size={18} className="mr-2" />
-            Logout
+           <Logout/>
           </Button>
         </div>
       </aside>
