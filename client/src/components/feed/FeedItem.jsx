@@ -5,15 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Share2, Bookmark, Flag, ExternalLink } from "lucide-react"
 import { useDispatch, useSelector } from "react-redux"
 import {
-<<<<<<< HEAD
   savePostToFeedAsync,
   reportPostFromFeedAsync,
   sharePostFromFeedAsync,
-=======
-  savePostToFeed,
-  reportPostFromFeed,
-  sharePostFromFeed,
->>>>>>> parent of aa6cda1 (get token and save token resolved)
 } from "../../redux/slices/feedSlice"
 import { ReportModal } from "./ReportModal"
 
@@ -48,7 +42,7 @@ const FeedItem = ({ post }) => {
   const handleSave = () => {
     if (!isSaved) {
       dispatch(
-        savePostToFeedAsync({
+        savePostToFeed({
           postId: post.postId,
           title: post.title,
           url: post.url,
@@ -65,11 +59,7 @@ const FeedItem = ({ post }) => {
 
   const handleConfirmReport = (reason) => {
     dispatch(
-<<<<<<< HEAD
       reportPostFromFeedAsync({
-=======
-      reportPostFromFeed({
->>>>>>> parent of aa6cda1 (get token and save token resolved)
         postId: post.postId,
         title: post.title,
         url: post.url,
@@ -84,7 +74,7 @@ const FeedItem = ({ post }) => {
   const handleShare = () => {
     if (!isShared) {
       dispatch(
-        sharePostFromFeedAsync({
+        sharePostFromFeed({
           postId: post.postId,
           title: post.title,
           url: post.url,

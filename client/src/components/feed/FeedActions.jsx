@@ -1,249 +1,113 @@
-// "use client"
-// import { Button } from "@/components/ui/button"
-// import { Share2, Bookmark, Flag } from "lucide-react"
-// import { useDispatch } from "react-redux"
-// import { savePostToFeed, reportPostFromFeed, sharePostFromFeed } from "../../redux/slices/feedSlice"
-// import { toast } from "@/components/ui/use-toast"
-
-// const FeedActions = ({ post, isSaved, isReported, isShared }) => {
-//   const dispatch = useDispatch()
-
-//   // Handle save post
-//   // const handleSave = () => {
-//   //   if (!isSaved) {
-//   //     dispatch(
-//   //       savePostToFeed({
-//   //         postId: post.postId,
-//   //         title: post.title,
-//   //         url: post.url,
-//   //         content: post.content,
-//   //         source: post.source,
-//   //       }),
-//   //     )
-//   //       .unwrap()
-//   //       .then(() => {
-//   //         toast({
-//   //           title: "Post saved",
-//   //           description: "Post has been saved to your collection",
-//   //         })
-//   //       })
-//   //       .catch((error) => {
-//   //         toast({
-//   //           title: "Error",
-//   //           description: error || "Failed to save post",
-//   //           variant: "destructive",
-//   //         })
-//   //       })
-//   //   }
-//   // }
-
-//   // // Handle report post
-//   // const handleReport = () => {
-//   //   if (!isReported) {
-//   //     dispatch(
-//   //       reportPostFromFeed({
-//   //         postId: post.postId,
-//   //         title: post.title,
-//   //         url: post.url,
-//   //         content: post.content,
-//   //         source: post.source,
-//   //       }),
-//   //     )
-//   //       .unwrap()
-//   //       .then(() => {
-//   //         toast({
-//   //           title: "Post reported",
-//   //           description: "Thank you for reporting this post",
-//   //         })
-//   //       })
-//   //       .catch((error) => {
-//   //         toast({
-//   //           title: "Error",
-//   //           description: error || "Failed to report post",
-//   //           variant: "destructive",
-//   //         })
-//   //       })
-//   //   }
-//   // }
-
-//   // // Handle share post
-//   // const handleShare = () => {
-//   //   if (!isShared) {
-//   //     dispatch(
-//   //       sharePostFromFeed({
-//   //         postId: post.postId,
-//   //         title: post.title,
-//   //         url: post.url,
-//   //         content: post.content,
-//   //         source: post.source,
-//   //       }),
-//   //     )
-//   //       .unwrap()
-//   //       .then(() => {
-//   //         // Copy the URL to clipboard
-//   //         navigator.clipboard
-//   //           .writeText(post.url)
-//   //           .then(() => {
-//   //             toast({
-//   //               title: "Link copied",
-//   //               description: "Post link has been copied to clipboard",
-//   //             })
-//   //           })
-//   //           .catch(() => {
-//   //             toast({
-//   //               title: "Copy failed",
-//   //               description: "Could not copy link to clipboard",
-//   //               variant: "destructive",
-//   //             })
-//   //           })
-//   //       })
-//   //       .catch((error) => {
-//   //         toast({
-//   //           title: "Error",
-//   //           description: error || "Failed to share post",
-//   //           variant: "destructive",
-//   //         })
-//   //       })
-//   //   }
-//   // }
-
-//   // Handle save post
-// const handleSave = async () => {
-//   if (!isSaved) {
-//     try {
-//       await dispatch(
-//         savePostToFeed({
-//           postId: post.postId,
-//           title: post.title,
-//           url: post.url,
-//           content: post.content,
-//           source: post.source,
-//         })
-//       ).unwrap();
-//       toast({
-//         title: "Post saved",
-//         description: "Post has been saved to your collection",
-//       });
-//     } catch (error) {
-//       toast({
-//         title: "Error",
-//         description: error.message || "Failed to save post",
-//         variant: "destructive",
-//       });
-//     }
-//   }
-// };
-
-// // Handle report post
-// const handleReport = async () => {
-//   if (!isReported) {
-//     try {
-//       await dispatch(
-//         reportPostFromFeed({
-//           postId: post.postId,
-//           title: post.title,
-//           url: post.url,
-//           content: post.content,
-//           source: post.source,
-//         })
-//       ).unwrap();
-//       toast({
-//         title: "Post reported",
-//         description: "Thank you for reporting this post",
-//       });
-//     } catch (error) {
-//       toast({
-//         title: "Error",
-//         description: error.message || "Failed to report post",
-//         variant: "destructive",
-//       });
-//     }
-//   }
-// };
-
-// // Handle share post
-// const handleShare = async () => {
-//   if (!isShared) {
-//     try {
-//       await dispatch(
-//         sharePostFromFeed({
-//           postId: post.postId,
-//           title: post.title,
-//           url: post.url,
-//           content: post.content,
-//           source: post.source,
-//         })
-//       ).unwrap();
-//       await navigator.clipboard.writeText(post.url);
-//       toast({
-//         title: "Link copied",
-//         description: "Post link has been copied to clipboard",
-//       });
-//     } catch (error) {
-//       toast({
-//         title: "Error",
-//         description: error.message || "Failed to share post",
-//         variant: "destructive",
-//       });
-//     }
-//   }
-// };
-
-//   return (
-//     <div className="flex gap-2">
-//       <Button
-//         variant="outline"
-//         size="sm"
-//         onClick={handleSave}
-//         disabled={isSaved}
-//         className={isSaved ? "bg-green-50 text-green-600 border-green-200" : ""}
-//       >
-//         <Bookmark className="h-4 w-4 mr-1" />
-//         {isSaved ? "Saved" : "Save"}
-//       </Button>
-
-//       <Button
-//         variant="outline"
-//         size="sm"
-//         onClick={handleShare}
-//         disabled={isShared}
-//         className={isShared ? "bg-blue-50 text-blue-600 border-blue-200" : ""}
-//       >
-//         <Share2 className="h-4 w-4 mr-1" />
-//         {isShared ? "Shared" : "Share"}
-//       </Button>
-
-//       <Button
-//         variant="outline"
-//         size="sm"
-//         onClick={handleReport}
-//         disabled={isReported}
-//         className={isReported ? "bg-red-50 text-red-600 border-red-200" : ""}
-//       >
-//         <Flag className="h-4 w-4 mr-1" />
-//         {isReported ? "Reported" : "Report"}
-//       </Button>
-//     </div>
-//   )
-// }
-
-// export default FeedActions
-
-
-
 "use client"
 import { Button } from "@/components/ui/button"
 import { Share2, Bookmark, Flag } from "lucide-react"
-import { useDispatch, useSelector } from "react-redux"
-import { savePostToFeedAsync, reportPostFromFeedAsync, sharePostFromFeedAsync } from "../../redux/slices/feedSlice"
+import { useDispatch } from "react-redux"
+import { savePostToFeed, reportPostFromFeed, sharePostFromFeed } from "../../redux/slices/feedSlice"
 import { toast } from "@/components/ui/use-toast"
 
 const FeedActions = ({ post, isSaved, isReported, isShared }) => {
   const dispatch = useDispatch()
-  const { savePostLoading, reportPostLoading, sharePostLoading } = useSelector((state) => state.feed)
 
   // Handle save post
-<<<<<<< HEAD
+  // const handleSave = () => {
+  //   if (!isSaved) {
+  //     dispatch(
+  //       savePostToFeed({
+  //         postId: post.postId,
+  //         title: post.title,
+  //         url: post.url,
+  //         content: post.content,
+  //         source: post.source,
+  //       }),
+  //     )
+  //       .unwrap()
+  //       .then(() => {
+  //         toast({
+  //           title: "Post saved",
+  //           description: "Post has been saved to your collection",
+  //         })
+  //       })
+  //       .catch((error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error || "Failed to save post",
+  //           variant: "destructive",
+  //         })
+  //       })
+  //   }
+  // }
+
+  // // Handle report post
+  // const handleReport = () => {
+  //   if (!isReported) {
+  //     dispatch(
+  //       reportPostFromFeed({
+  //         postId: post.postId,
+  //         title: post.title,
+  //         url: post.url,
+  //         content: post.content,
+  //         source: post.source,
+  //       }),
+  //     )
+  //       .unwrap()
+  //       .then(() => {
+  //         toast({
+  //           title: "Post reported",
+  //           description: "Thank you for reporting this post",
+  //         })
+  //       })
+  //       .catch((error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error || "Failed to report post",
+  //           variant: "destructive",
+  //         })
+  //       })
+  //   }
+  // }
+
+  // // Handle share post
+  // const handleShare = () => {
+  //   if (!isShared) {
+  //     dispatch(
+  //       sharePostFromFeed({
+  //         postId: post.postId,
+  //         title: post.title,
+  //         url: post.url,
+  //         content: post.content,
+  //         source: post.source,
+  //       }),
+  //     )
+  //       .unwrap()
+  //       .then(() => {
+  //         // Copy the URL to clipboard
+  //         navigator.clipboard
+  //           .writeText(post.url)
+  //           .then(() => {
+  //             toast({
+  //               title: "Link copied",
+  //               description: "Post link has been copied to clipboard",
+  //             })
+  //           })
+  //           .catch(() => {
+  //             toast({
+  //               title: "Copy failed",
+  //               description: "Could not copy link to clipboard",
+  //               variant: "destructive",
+  //             })
+  //           })
+  //       })
+  //       .catch((error) => {
+  //         toast({
+  //           title: "Error",
+  //           description: error || "Failed to share post",
+  //           variant: "destructive",
+  //         })
+  //       })
+  //   }
+  // }
+
+  // Handle save post
   const handleSave = async () => {
     if (!isSaved) {
       try {
@@ -271,38 +135,11 @@ const FeedActions = ({ post, isSaved, isReported, isShared }) => {
           variant: "destructive",
         })
       }
-=======
-  const handleSave = () => {
-    if (!isSaved) {
-      dispatch(
-        savePostToFeed({
-          postId: post.postId,
-          title: post.title,
-          url: post.url,
-          content: post.content,
-          source: post.source,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          toast({
-            title: "Post saved",
-            description: "Post has been saved to your collection",
-          })
-        })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error || "Failed to save post",
-            variant: "destructive",
-          })
-        })
->>>>>>> parent of aa6cda1 (get token and save token resolved)
     }
   }
+};
 
   // Handle report post
-<<<<<<< HEAD
   const handleReport = async () => {
     if (!isReported) {
       try {
@@ -328,38 +165,10 @@ const FeedActions = ({ post, isSaved, isReported, isShared }) => {
           variant: "destructive",
         })
       }
-=======
-  const handleReport = () => {
-    if (!isReported) {
-      dispatch(
-        reportPostFromFeed({
-          postId: post.postId,
-          title: post.title,
-          url: post.url,
-          content: post.content,
-          source: post.source,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          toast({
-            title: "Post reported",
-            description: "Thank you for reporting this post",
-          })
-        })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error || "Failed to report post",
-            variant: "destructive",
-          })
-        })
->>>>>>> parent of aa6cda1 (get token and save token resolved)
     }
   }
 
   // Handle share post
-<<<<<<< HEAD
   const handleShare = async () => {
     if (!isShared) {
       try {
@@ -387,47 +196,9 @@ const FeedActions = ({ post, isSaved, isReported, isShared }) => {
           variant: "destructive",
         })
       }
-=======
-  const handleShare = () => {
-    if (!isShared) {
-      dispatch(
-        sharePostFromFeed({
-          postId: post.postId,
-          title: post.title,
-          url: post.url,
-          content: post.content,
-          source: post.source,
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          // Copy the URL to clipboard
-          navigator.clipboard
-            .writeText(post.url)
-            .then(() => {
-              toast({
-                title: "Link copied",
-                description: "Post link has been copied to clipboard",
-              })
-            })
-            .catch(() => {
-              toast({
-                title: "Copy failed",
-                description: "Could not copy link to clipboard",
-                variant: "destructive",
-              })
-            })
-        })
-        .catch((error) => {
-          toast({
-            title: "Error",
-            description: error || "Failed to share post",
-            variant: "destructive",
-          })
-        })
->>>>>>> parent of aa6cda1 (get token and save token resolved)
     }
   }
+
 
   return (
     <div className="flex gap-2">
@@ -435,36 +206,36 @@ const FeedActions = ({ post, isSaved, isReported, isShared }) => {
         variant="outline"
         size="sm"
         onClick={handleSave}
-        disabled={isSaved || savePostLoading}
-        className={`transition-colors ${isSaved ? "bg-green-50 text-green-600 border-green-200" : ""}`}
+        disabled={isSaved}
+        className={isSaved ? "bg-green-50 text-green-600 border-green-200" : ""}
       >
         <Bookmark className="h-4 w-4 mr-1" />
-        {isSaved ? "Saved" : savePostLoading ? "Saving..." : "Save"}
+        {isSaved ? "Saved" : "Save"}
       </Button>
 
       <Button
         variant="outline"
         size="sm"
         onClick={handleShare}
-        disabled={isShared || sharePostLoading}
-        className={`transition-colors ${isShared ? "bg-blue-50 text-blue-600 border-blue-200" : ""}`}
+        disabled={isShared}
+        className={isShared ? "bg-blue-50 text-blue-600 border-blue-200" : ""}
       >
         <Share2 className="h-4 w-4 mr-1" />
-        {isShared ? "Shared" : sharePostLoading ? "Sharing..." : "Share"}
+        {isShared ? "Shared" : "Share"}
       </Button>
 
       <Button
         variant="outline"
         size="sm"
         onClick={handleReport}
-        disabled={isReported || reportPostLoading}
-        className={`transition-colors ${isReported ? "bg-red-50 text-red-600 border-red-200" : ""}`}
+        disabled={isReported}
+        className={isReported ? "bg-red-50 text-red-600 border-red-200" : ""}
       >
         <Flag className="h-4 w-4 mr-1" />
-        {isReported ? "Reported" : reportPostLoading ? "Reporting..." : "Report"}
+        {isReported ? "Reported" : "Report"}
       </Button>
     </div>
   )
-}
+
 
 export default FeedActions
