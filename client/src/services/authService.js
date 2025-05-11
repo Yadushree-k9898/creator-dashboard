@@ -8,7 +8,7 @@ export const register = async (userData) => {
     // Ensure the role is correct, either 'User' or 'admin'
     userData.role = userData.role.charAt(0).toUpperCase() + userData.role.slice(1); // Capitalize first letter
 
-    const response = await API.post(`${API_URL}/auth/register`, userData);
+    const response = await API.post(`${API_URL}/api/auth/register`, userData);
     return response.data;
   } catch (error) {
     console.error("Registration error:", error.response?.data || error.message);
@@ -19,7 +19,7 @@ export const register = async (userData) => {
 // Login a user
 export const login = async (userData) => {
   try {
-    const response = await API.post(`${API_URL}/auth/login`, userData);
+    const response = await API.post(`${API_URL}/api/auth/login`, userData);
     return response.data;
   } catch (error) {
     console.error("Login error:", error.response?.data || error.message);
@@ -30,7 +30,7 @@ export const login = async (userData) => {
 // Get the current user
 export const getMe = async () => {
   try {
-    const response = await API.get(`${API_URL}/auth/me`);
+    const response = await API.get(`${API_URL}/api/auth/me`);
     return response.data;
   } catch (error) {
     console.error("Get current user error:", error.response?.data || error.message);
@@ -41,7 +41,7 @@ export const getMe = async () => {
 // Refresh token
 export const refreshToken = async (refreshToken) => {
   try {
-    const response = await API.post(`${API_URL}/auth/refresh`, { refreshToken });
+    const response = await API.post(`${API_URL}/api/auth/refresh`, { refreshToken });
     return response.data;
   } catch (error) {
     console.error("Token refresh error:", error.response?.data || error.message);
@@ -52,7 +52,7 @@ export const refreshToken = async (refreshToken) => {
 // Logout
 export const logout = async () => {
   try {
-    const response = await API.post(`${API_URL}/auth/logout`);
+    const response = await API.post(`${API_URL}/api/auth/logout`);
     return response.data;
   } catch (error) {
     console.error("Logout error:", error.response?.data || error.message);
