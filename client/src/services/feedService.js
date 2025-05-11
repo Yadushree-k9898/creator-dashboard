@@ -18,8 +18,8 @@ export const fetchRedditPosts = async (page = 1) => {
 export const fetchDevToPosts = async (searchQuery = "", page = 1) => {
   try {
     const url = searchQuery
-      ? `${API_URL}/devto?q=${encodeURIComponent(searchQuery)}&page=${page}`
-      : `${API_URL}/devto?page=${page}`;
+      ? `${API_URL}/api/feed/devto?q=${encodeURIComponent(searchQuery)}&page=${page}`
+      : `${API_URL}/api/feed/devto?page=${page}`;
     const response = await API.get(url);
     return response.data.posts || [];
   } catch (error) {
